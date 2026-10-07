@@ -1,8 +1,14 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "TODO: project title"
+title: "IC Trainer: an interactive app to learn EEG independent component classification"
 abstract: >-
-  TODO: one paragraph on what the project does and what it is for.
+  IC Trainer is an interactive web app that trains people to classify EEG
+  independent components (neural, blink, eye movement, muscle, bad channel,
+  rare event, mixed/other) before removing artifacts, following the practical
+  guide by Chaumon, Bishop and Busch (2015). It combines a learning section,
+  single-component practice with feedback, and full-dataset review scored with
+  signal detection measures against SASICA-style automated measures. All
+  components are simulated for teaching.
   Developed during the personal projects session (hackathon) of the
   Training School of Working Group 3 of the INDoS COST Action (CA24161),
   Madrid, 30 September to 2 October 2026.
@@ -10,12 +16,33 @@ type: software
 authors:
   - family-names: "Navarro Bernad"
     given-names: "Marta"
-    affiliation: "TODO: affiliation, city, country"
+    affiliation: "Paris Brain Institute (ICM), Sorbonne Université, Paris, France"
 license: Apache-2.0
 repository-code: "https://github.com/indos-costaction/wg3-ts2026-navarro"
+url: "https://www.indos-costaction.eu/wg3-ts2026-navarro/trainer/"
 keywords:
   - neuroimaging
   - hackathon
   - training school
   - INDoS
   - COST Action CA24161
+  - EEG
+  - independent component analysis
+  - artifact correction
+  - SASICA
+references:
+  - type: article
+    title: "A practical guide to the selection of independent components of the electroencephalogram for artifact correction"
+    authors:
+      - family-names: "Chaumon"
+        given-names: "Maximilien"
+      - family-names: "Bishop"
+        given-names: "Dorothy V. M."
+      - family-names: "Busch"
+        given-names: "Niko A."
+    journal: "Journal of Neuroscience Methods"
+    volume: 250
+    start: 47
+    end: 63
+    year: 2015
+    doi: "10.1016/j.jneumeth.2015.02.025"
