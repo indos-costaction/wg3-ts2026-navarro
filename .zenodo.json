@@ -1,11 +1,11 @@
 {
   "upload_type": "software",
-  "title": "TODO: project title",
-  "description": "<p>TODO: one paragraph on what the project does and what it is for.</p><p>Developed during the personal projects session (hackathon) of the Training School of Working Group 3 of the INDoS COST Action (CA24161), Madrid, 30 September to 2 October 2026.</p>",
+  "title": "IC Trainer: an interactive app to learn EEG independent component classification",
+  "description": "<p>IC Trainer is an interactive web app that trains people to classify EEG independent components (neural, blink, eye movement, muscle, bad channel, rare event, mixed/other) before removing artifacts, following the practical guide by Chaumon, Bishop &amp; Busch (2015). It combines a learning section, single-component practice with feedback, and full-dataset review scored with signal detection measures (hit rate, false alarms, d′) against SASICA-style automated measures. All components are simulated for teaching. <a href=\"https://www.indos-costaction.eu/wg3-ts2026-navarro/trainer/\">Open the app</a>.</p><p>Developed during the personal projects session (hackathon) of the Training School of Working Group 3 of the INDoS COST Action (CA24161), Madrid, 30 September to 2 October 2026.</p>",
   "creators": [
     {
       "name": "Navarro Bernad, Marta",
-      "affiliation": "TODO: affiliation, city, country"
+      "affiliation": "Paris Brain Institute (ICM), Sorbonne Université, Paris, France"
     }
   ],
   "license": "apache-2.0",
@@ -15,7 +15,12 @@
     "hackathon",
     "training school",
     "INDoS",
-    "COST Action CA24161"
+    "COST Action CA24161",
+    "EEG",
+    "independent component analysis",
+    "artifact correction",
+    "training",
+    "SASICA"
   ],
   "notes": "This publication is based upon work from COST Action CA24161 (INDoS), supported by COST (European Cooperation in Science and Technology).",
   "related_identifiers": [
@@ -28,6 +33,12 @@
       "identifier": "https://www.indos-costaction.eu/wg3-ts2026",
       "relation": "isPartOf",
       "resource_type": "event"
+    },
+    {
+      "identifier": "10.1016/j.jneumeth.2015.02.025",
+      "relation": "isDerivedFrom",
+      "scheme": "doi",
+      "resource_type": "publication-article"
     }
   ]
 }

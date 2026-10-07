@@ -11,8 +11,53 @@ Preprocessing Pipelines) of COST Action CA24161, INDoS.
 
 ## The project
 
-*To be written by the author: what the project does and why, how to install
-it, how to run it, and which data it was tried on.*
+**IC Trainer** is an interactive web app that trains people to classify EEG
+independent components (ICs) before removing artifacts. It follows the
+practical guide by Chaumon, Bishop & Busch (2015, *J Neurosci Methods*
+250:47–63, [doi:10.1016/j.jneumeth.2015.02.025](https://doi.org/10.1016/j.jneumeth.2015.02.025)).
+
+**Open the app: <https://www.indos-costaction.eu/wg3-ts2026-navarro/trainer/>**
+
+**Why.** Rejecting ICs always requires human judgement, and even experts
+disagree on how to label them. Automated tools such as SASICA, ADJUST or
+FASTER can guide the decision, but users still need to learn what each type
+of component looks like. The app teaches this with immediate feedback.
+
+**What it does.**
+
+- *Learn:* a reading guide plus one page per category (neural, blink, eye
+  movement, muscle, bad channel, rare event, mixed/other), with expected
+  properties, common confusions, how automated tools detect it, and the edge
+  cases discussed in the paper.
+- *Practice:* classify one unknown component at a time from its topography,
+  ERP image and power spectrum, then get feedback on its key features and on
+  whether your error would cause over- or under-correction.
+- *Full dataset:* review 40 components sorted by variance, mark those you
+  would reject, and get your hit rate, false-alarm rate, d′, criterion and
+  the percentage of artifact and neural variance removed, compared with a
+  "reject everything SASICA flags" rule.
+- *Results:* a cumulative confusion matrix and history, stored only in the
+  user's browser.
+
+**How to install.** Nothing to install: the app is a single self-contained
+HTML file with no dependencies or server.
+
+**How to run.** Open the link above, or download
+[`trainer/index.html`](trainer/index.html) and open it in any modern browser.
+To modify it, edit the files in [`trainer/src/`](trainer/src/) (`page.html`
+for layout and styles, `core.js` for the simulation and measures, `ui.js`
+for the interface) and rebuild with `python trainer/src/build.py`.
+
+**Data.** The app uses no real recordings. All components are simulated for
+teaching: topographies on a 91-channel montage plus 4 EOG channels, 100
+trials from −500 to 1000 ms at 128 Hz. The automated measures
+(autocorrelation, focal topography, focal trial activity, EOG correlations,
+temporal kurtosis) follow SASICA's logic, with adaptive thresholds (dataset
+mean + 2 SD; 4 SD for EOG correlations). EOG correlations are set per
+component type rather than computed from simulated EOG signals. Next step:
+load real components exported from EEGLAB or MNE-Python, with expert labels.
+
+Developed with the assistance of Claude (Anthropic).
 
 ## Contributing the code
 

@@ -1,0 +1,1481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IC Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: lab workbench — tabbed header, reading panel on the left, component card on the right */
+:root{
+  --bg:#ECEFEE; --surface:#F9FAFA; --sunk:#E2E7E5; --ink:#14201E; --muted:#56655F; --line:#CDD5D2;
+  --accent:#2D40B0; --accent-soft:#DCE0F6; --on-accent:#FFFFFF;
+  --ok:#1D7F46; --bad:#B8362A; --keep-bg:#D5EBDC; --reject-bg:#F4D8D3;
+  --c-neural:#2E8551; --c-blink:#1688A8; --c-saccade:#3B5CC6; --c-muscle:#C8661C; --c-badchan:#8248B8; --c-rare:#BC3374; --c-other:#77827E;
+  --m-LoAC:#2F6ED3; --m-FocCh:#3B953B; --m-FocTr:#7FAA1F; --m-CorrV:#11A0B2; --m-CorrH:#0B7685; --m-TK:#4D4A57;
+  --font-display:'Bricolage Grotesque','Avenir Next','Segoe UI',sans-serif;
+  --font-body:'Public Sans','Helvetica Neue',Arial,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1413; --surface:#161E1C; --sunk:#1D2725; --ink:#E2E9E7; --muted:#93A39E; --line:#2B3633;
+  --accent:#8E9CFF; --accent-soft:#252C55; --on-accent:#0E1413;
+  --ok:#5CC98A; --bad:#F07C6E; --keep-bg:#183526; --reject-bg:#45211C;
+  --c-neural:#5CC98A; --c-blink:#4CC3E0; --c-saccade:#8296F2; --c-muscle:#F0994F; --c-badchan:#B98BEB; --c-rare:#EE73AE; --c-other:#9AA6A2;
+  --m-LoAC:#6E9DF0; --m-FocCh:#6BCB6B; --m-FocTr:#B4D84A; --m-CorrV:#43CFDF; --m-CorrH:#2FAFBF; --m-TK:#B3AEC4;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E1413; --surface:#161E1C; --sunk:#1D2725; --ink:#E2E9E7; --muted:#93A39E; --line:#2B3633;
+  --accent:#8E9CFF; --accent-soft:#252C55; --on-accent:#0E1413;
+  --ok:#5CC98A; --bad:#F07C6E; --keep-bg:#183526; --reject-bg:#45211C;
+  --c-neural:#5CC98A; --c-blink:#4CC3E0; --c-saccade:#8296F2; --c-muscle:#F0994F; --c-badchan:#B98BEB; --c-rare:#EE73AE; --c-other:#9AA6A2;
+  --m-LoAC:#6E9DF0; --m-FocCh:#6BCB6B; --m-FocTr:#B4D84A; --m-CorrV:#43CFDF; --m-CorrH:#2FAFBF; --m-TK:#B3AEC4;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;line-height:1.15}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:20px}
+@media (max-width:520px){.wrap{padding-inline:16px}}
+
+/* Header */
+.top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.top .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding-block:12px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 320px}
+.brand svg{flex:none}
+.brand h1{font-size:1.45rem;font-weight:700;letter-spacing:-.01em}
+.brand p{margin:0;color:var(--muted);font-size:.82rem}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;background:var(--sunk);padding:4px;border-radius:999px}
+.tabs button{border:0;background:transparent;padding:7px 14px;border-radius:999px;font-weight:600;font-size:.88rem;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+main .wrap{padding-block:24px 48px}
+.eyebrow{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* Shared blocks */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;font-weight:600;font-size:.9rem}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted);cursor:pointer;user-select:none}
+.switch input{accent-color:var(--accent);width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:600;font-family:var(--font-mono)}
+.pill.reject{background:var(--reject-bg);color:var(--bad)}
+.pill.keep{background:var(--keep-bg);color:var(--ok)}
+.chip{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.muted{color:var(--muted)}
+.mono{font-family:var(--font-mono)}
+.tabnum{font-variant-numeric:tabular-nums}
+
+/* Component card */
+.cmp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:grid;gap:12px;min-width:0}
+.cmp-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.cmp-head .id{font-family:var(--font-mono);font-weight:500}
+.cmp-grid{display:grid;grid-template-columns:minmax(150px,210px) minmax(0,1fr);gap:12px}
+.cmp-row2{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:640px){.cmp-grid,.cmp-row2{grid-template-columns:minmax(0,1fr)}.cmp-grid .topo-pane canvas{max-width:220px}}
+.pane{margin:0;min-width:0}
+.pane figcaption{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.pane canvas{display:block;width:100%}
+.meas{display:grid;gap:6px}
+.meas-row{display:grid;grid-template-columns:62px minmax(0,1fr) 46px;align-items:center;gap:8px;font-size:.8rem}
+.meas-row .mk{font-family:var(--font-mono);font-weight:500}
+.meas-row .mv{font-family:var(--font-mono);font-variant-numeric:tabular-nums;text-align:right;color:var(--muted)}
+.track{position:relative;height:14px;background:var(--sunk);border-radius:3px;overflow:hidden}
+.track .bar{position:absolute;inset:0 auto 0 0;background:var(--muted);opacity:.35;border-radius:3px}
+.track .bar.pass{opacity:1}
+.track .th{position:absolute;top:-2px;bottom:-2px;left:50%;width:2px;background:var(--bad)}
+.meas-legend{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);font-family:var(--font-mono);padding-left:70px;padding-right:54px}
+.meas-hidden{display:grid;place-items:center;text-align:center;padding:18px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);font-size:.85rem;min-height:120px}
+
+/* Learn */
+.learn{display:grid;grid-template-columns:230px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.learn{grid-template-columns:minmax(0,1fr)}}
+.catlist{display:grid;gap:4px;position:sticky;top:90px}
+@media (max-width:860px){.catlist{position:static;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+.catlist button{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid transparent;background:transparent;padding:9px 12px;border-radius:8px;font-weight:600}
+.catlist button:hover{background:var(--surface)}
+.catlist button[aria-current="true"]{background:var(--surface);border-color:var(--line)}
+.catlist .side{margin-left:auto;font-size:.7rem;font-family:var(--font-mono);color:var(--muted);font-weight:400}
+.learn-body{display:grid;gap:18px;min-width:0}
+.learn-intro{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;padding:18px}
+@media (max-width:760px){.learn-intro{grid-template-columns:minmax(0,1fr)}}
+.learn-intro h2{font-size:1.6rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.learn-intro p{margin:.5em 0 0;max-width:62ch}
+.props{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.props li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:6px;font-size:.92rem}
+.props li::before{content:"✓";color:var(--ok);font-weight:700}
+.props.warn li::before{content:"!";color:var(--c-muscle)}
+.subhead{font-family:var(--font-display);font-size:1rem;font-weight:700;margin:14px 0 6px}
+.variants{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.variants button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:.84rem}
+.variants button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.variants button .t{font-family:var(--font-mono);font-size:.7rem;opacity:.8;margin-left:4px}
+.note{border-left:3px solid var(--c-muscle);background:var(--sunk);padding:10px 14px;border-radius:0 8px 8px 0;font-size:.9rem}
+.howto{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:16px}
+@media (max-width:860px){.howto{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.howto{grid-template-columns:minmax(0,1fr)}}
+.howto h3{font-size:.95rem;margin-bottom:4px}
+.howto p{margin:0;font-size:.85rem;color:var(--muted)}
+.principles{padding:16px 18px}
+.principles ol{margin:8px 0 0;padding-left:20px;display:grid;gap:4px;font-size:.92rem;max-width:90ch}
+
+/* Practice */
+.practice{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+@media (max-width:960px){.practice{grid-template-columns:minmax(0,1fr)}}
+.scorebar{display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.stat{display:grid}
+.stat b{font-family:var(--font-display);font-size:1.5rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:.75rem;color:var(--muted)}
+.answers{display:grid;gap:6px;padding:14px}
+.answers h3{font-size:1.05rem}
+.ans{display:grid;grid-template-columns:22px 12px minmax(0,1fr) auto;align-items:center;gap:10px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 12px;text-align:left;font-weight:600}
+.ans:hover:not(:disabled){border-color:var(--accent)}
+.ans .key{font-family:var(--font-mono);font-size:.75rem;color:var(--muted);border:1px solid var(--line);border-radius:4px;text-align:center}
+.ans .dec{font-size:.72rem;font-weight:500}
+.ans.correct{border-color:var(--ok);background:var(--keep-bg)}
+.ans.wrong{border-color:var(--bad);background:var(--reject-bg)}
+.ans:disabled{cursor:default}
+.feedback{padding:16px;display:grid;gap:10px}
+.feedback h3{font-size:1.25rem}
+.feedback .ok{color:var(--ok)}
+.feedback .no{color:var(--bad)}
+.feedback ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:.92rem}
+
+/* Dataset */
+.ds-tools{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:14px}
+.ds-tools .spacer{flex:1}
+.ds{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:20px;align-items:start}
+@media (max-width:1000px){.ds{grid-template-columns:minmax(0,1fr)}}
+.icgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.ic{position:relative;display:grid;gap:4px;justify-items:center;border:2px solid transparent;background:var(--surface);border-radius:8px;padding:5px 4px 6px}
+.ic[aria-current="true"]{border-color:var(--accent)}
+.ic .num{width:100%;font-family:var(--font-mono);font-size:.72rem;font-weight:500;border-radius:4px;padding:1px 0;text-align:center;background:var(--keep-bg);color:var(--ok)}
+.ic.rej .num{background:var(--reject-bg);color:var(--bad)}
+.ic canvas{width:72px;height:72px}
+.ic .dots{position:absolute;left:6px;top:24px;display:grid;gap:3px}
+.ic .dots i{width:7px;height:7px;border-radius:50%;display:block}
+.ic .truth{font-size:.66rem;line-height:1.1;text-align:center;color:var(--muted);min-height:1.1em}
+.ic.g-hit{box-shadow:inset 0 0 0 2px var(--ok)}
+.ic.g-fa{box-shadow:inset 0 0 0 2px var(--bad)}
+.ic.g-miss{box-shadow:inset 0 0 0 2px var(--bad);border-style:dashed}
+.ic.g-miss,.ic.g-fa{outline:2px dashed var(--bad);outline-offset:-2px}
+.ds-side{display:grid;gap:14px;position:sticky;top:90px;min-width:0}
+@media (max-width:1000px){.ds-side{position:static}}
+.decide{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.decide .btn[aria-pressed="true"].k{background:var(--keep-bg);border-color:var(--ok);color:var(--ok)}
+.decide .btn[aria-pressed="true"].r{background:var(--reject-bg);border-color:var(--bad);color:var(--bad)}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.tile{background:var(--sunk);border-radius:8px;padding:10px 12px}
+.tile b{display:block;font-family:var(--font-display);font-size:1.35rem;font-variant-numeric:tabular-nums}
+.tile span{font-size:.75rem;color:var(--muted)}
+.tile .vs{font-size:.75rem;font-family:var(--font-mono);color:var(--muted)}
+.overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:14px}
+@media (max-width:560px){.overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.overview figure{margin:0}
+.overview figcaption{font-family:var(--font-mono);font-size:.68rem;color:var(--muted)}
+.overview canvas{width:100%;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* Results */
+.res{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.res{grid-template-columns:minmax(0,1fr)}}
+.tablewrap{overflow-x:auto}
+table.conf{border-collapse:collapse;font-size:.82rem;font-variant-numeric:tabular-nums;min-width:540px}
+table.conf th,table.conf td{padding:6px 8px;text-align:center;border:1px solid var(--line)}
+table.conf th{font-weight:600;font-size:.75rem}
+table.conf th.rowh{text-align:left;white-space:nowrap}
+table.list{border-collapse:collapse;width:100%;font-size:.85rem;font-variant-numeric:tabular-nums}
+table.list th,table.list td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
+table.list th:first-child,table.list td:first-child{text-align:left}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:.82rem}
+footer .wrap{padding-block:18px 28px;display:grid;gap:4px}
+footer a{color:var(--accent)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="22" r="17" fill="none" stroke="var(--ink)" stroke-width="2"/><path d="M17 5.5 21 1.5 25 5.5" fill="none" stroke="var(--ink)" stroke-width="2"/><circle cx="21" cy="12" r="5" fill="var(--c-muscle)" opacity=".85"/><circle cx="14" cy="27" r="6" fill="var(--accent)" opacity=".8"/><circle cx="28" cy="28" r="4" fill="var(--c-neural)" opacity=".85"/></svg>
+      <div>
+        <h1>IC Trainer</h1>
+        <p>Classifying EEG independent components for artifact correction</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" data-tab="learn" id="tab-learn">Learn</button>
+      <button role="tab" data-tab="practice" id="tab-practice">Practice</button>
+      <button role="tab" data-tab="dataset" id="tab-dataset">Full dataset</button>
+      <button role="tab" data-tab="results" id="tab-results">Results</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section id="v-learn" role="tabpanel"></section>
+    <section id="v-practice" role="tabpanel" hidden></section>
+    <section id="v-dataset" role="tabpanel" hidden></section>
+    <section id="v-results" role="tabpanel" hidden></section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Simulated components for teaching: topographies on a 91-channel montage + 4 EOG, 100 trials from −500 to 1000 ms at 128 Hz. Measures follow SASICA’s logic (adaptive threshold: dataset mean ± 2 SD, 4 SD for EOG correlations).</span>
+    <span>Based on Chaumon M, Bishop DVM, Busch NA (2015). A practical guide to the selection of independent components of the electroencephalogram for artifact correction. <i>J Neurosci Methods</i> 250:47–63. <a href="https://doi.org/10.1016/j.jneumeth.2015.02.025" target="_blank" rel="noopener">doi:10.1016/j.jneumeth.2015.02.025</a></span>
+  </div>
+</footer>
+
+<script>
+// ===== Simulation core: synthetic ICA components and SASICA-style measures =====
+const FS = 128, T0 = -0.5, NT = 192, NTR = 100, LAG = 3, HEAD = 1.1;
+const TIMES = new Float32Array(NT);
+for (let i = 0; i < NT; i++) TIMES[i] = T0 + i / FS;
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function makeRng(seed) {
+  const r = mulberry32(seed);
+  let spare = null;
+  return {
+    u: r,
+    n() {
+      if (spare !== null) { const s = spare; spare = null; return s; }
+      let u = 0; while (u === 0) u = r();
+      const v = r(), m = Math.sqrt(-2 * Math.log(u));
+      spare = m * Math.sin(2 * Math.PI * v);
+      return m * Math.cos(2 * Math.PI * v);
+    },
+    range(a, b) { return a + (b - a) * r(); },
+    pick(arr) { return arr[Math.floor(r() * arr.length)]; },
+    int(a, b) { return a + Math.floor(r() * (b - a + 1)); },
+    sign() { return r() < 0.5 ? -1 : 1; }
+  };
+}
+
+// Montage: 91 electrodes in rings + 4 EOG (2 infraorbital, 2 outer canthi)
+const CH = (() => {
+  const c = [{ x: 0, y: 0 }];
+  [[0.19, 6], [0.38, 12], [0.57, 18], [0.76, 24], [0.94, 30]].forEach(([r, n], ri) => {
+    for (let i = 0; i < n; i++) {
+      const a = 2 * Math.PI * (i + 0.5 * (ri % 2)) / n;
+      c.push({ x: r * Math.sin(a), y: r * Math.cos(a) });
+    }
+  });
+  return c;
+})();
+const NCH = CH.length;
+const EOGPOS = [
+  { x: -0.34, y: 1.0, n: 'left infraorbital EOG' },
+  { x: 0.34, y: 1.0, n: 'right infraorbital EOG' },
+  { x: -0.74, y: 0.76, n: 'left canthus EOG' },
+  { x: 0.74, y: 0.76, n: 'right canthus EOG' }
+];
+
+const SIG = x => 1 / (1 + Math.exp(-x));
+const G = (x, y, cx, cy, s) => Math.exp(-((x - cx) ** 2 + (y - cy) ** 2) / (2 * s * s));
+const polar = (r, deg) => ({ x: r * Math.sin(deg * Math.PI / 180), y: r * Math.cos(deg * Math.PI / 180) });
+
+function locName(x, y) {
+  const ap = y > 0.35 ? 'frontal' : y < -0.35 ? 'posterior' : 'central';
+  const lat = x < -0.25 ? 'left ' : x > 0.25 ? 'right ' : 'midline ';
+  return lat + ap + ' region';
+}
+
+const CATS = [
+  { k: 'neural', name: 'Neural', reject: false },
+  { k: 'blink', name: 'Blink', reject: true },
+  { k: 'saccade', name: 'Eye movement', reject: true },
+  { k: 'muscle', name: 'Muscle', reject: true },
+  { k: 'badchan', name: 'Bad channel', reject: true },
+  { k: 'rare', name: 'Rare event', reject: true },
+  { k: 'other', name: 'Mixed / other', reject: false }
+];
+const CATIDX = Object.fromEntries(CATS.map((c, i) => [c.k, i]));
+
+const SUBS = {
+  alpha: { cat: 'neural', label: 'Posterior alpha' },
+  beta: { cat: 'neural', label: 'Central beta / mu' },
+  theta: { cat: 'neural', label: 'Frontal midline theta' },
+  evoked: { cat: 'neural', label: 'Evoked response' },
+  neural_frontal: { cat: 'neural', label: 'Frontal, looks like a blink', trap: true },
+  focal_neural: { cat: 'neural', label: 'Focal, looks like a bad channel', trap: true },
+  blink: { cat: 'blink', label: 'Blink' },
+  hsacc: { cat: 'saccade', label: 'Horizontal saccade' },
+  vsacc: { cat: 'saccade', label: 'Vertical saccade' },
+  muscle: { cat: 'muscle', label: 'Tonic muscle' },
+  badchan: { cat: 'badchan', label: 'Poorly connected electrode' },
+  rare_focal: { cat: 'rare', label: 'Event at one electrode' },
+  rare_spread: { cat: 'rare', label: 'Event at many electrodes' },
+  noisy_events: { cat: 'rare', label: 'Noise with brief events', trap: true },
+  badchan_fewtrials: { cat: 'rare', label: 'Bad channel in a few trials only', trap: true },
+  other: { cat: 'other', label: 'Ambiguous mixture' },
+  focal_nonmuscle: { cat: 'other', label: 'Focal without muscle noise', trap: true }
+};
+const SUBS_BY_CAT = {};
+for (const [k, v] of Object.entries(SUBS)) (SUBS_BY_CAT[v.cat] = SUBS_BY_CAT[v.cat] || []).push(k);
+
+function genComponent(sub, seed) {
+  const R = makeRng((seed >>> 0) || 1);
+  const tc = new Float32Array(NTR * NT);
+  const c = {
+    sub, cat: SUBS[sub].cat, seed,
+    showEOG: R.u() < 0.5,
+    corrV: R.range(0.005, 0.07), corrH: R.range(0.005, 0.07),
+    reasons: [], trap: null, p: {}
+  };
+  let f = null, eog = null, wx = null;
+
+  const bg = (a, sd) => {
+    const s2 = sd * Math.sqrt(1 - a * a);
+    for (let k = 0; k < NTR; k++) {
+      let x = R.n() * sd; const o = k * NT;
+      for (let t = 0; t < NT; t++) { x = a * x + R.n() * s2; tc[o + t] += x; }
+    }
+  };
+  const white = sd => { for (let i = 0; i < tc.length; i++) tc[i] += R.n() * sd; };
+  const blue = (sd, env) => {
+    for (let k = 0; k < NTR; k++) {
+      const e = env ? env(k) : 1; let p = R.n(); const o = k * NT;
+      for (let t = 0; t < NT; t++) { const w = R.n(); tc[o + t] += sd * e * (w - 0.7 * p) / 1.22; p = w; }
+    }
+  };
+  const erp = (list, jit = 0.3) => {
+    for (let k = 0; k < NTR; k++) {
+      const s = Math.max(0, 1 + jit * R.n()), lat = R.n() * 0.012, o = k * NT;
+      for (let t = 0; t < NT; t++) {
+        const tt = TIMES[t]; let v = 0;
+        for (const [mu, A, sg] of list) v += A * Math.exp(-((tt - mu - lat) ** 2) / (2 * sg * sg));
+        tc[o + t] += s * v;
+      }
+    }
+  };
+  const osc = (fr, amp, env) => {
+    for (let k = 0; k < NTR; k++) {
+      const a = amp * R.range(0.6, 1.4), ph = R.u() * 2 * Math.PI, df = R.n() * 0.3, o = k * NT;
+      for (let t = 0; t < NT; t++) tc[o + t] += a * env(TIMES[t]) * Math.sin(2 * Math.PI * (fr + df) * TIMES[t] + ph);
+    }
+  };
+  const steps = (prob, ampLo, ampHi) => {
+    for (let k = 0; k < NTR; k++) {
+      if (R.u() > prob) continue;
+      const n = R.u() < 0.3 ? 2 : 1, o = k * NT;
+      for (let s = 0; s < n; s++) {
+        const c0 = R.range(-0.45, 0.8), dur = R.range(0.25, 0.7), A = R.sign() * R.range(ampLo, ampHi);
+        for (let t = 0; t < NT; t++) {
+          const tt = TIMES[t];
+          tc[o + t] += A * (SIG((tt - c0) / 0.012) - SIG((tt - c0 - dur) / 0.012));
+        }
+      }
+    }
+  };
+  const burst = (k, amp, wd) => {
+    const c0 = R.range(-0.35, 0.85), o = k * NT, kind = R.u();
+    const fr = R.range(4, 14), ph = R.u() * 6.28;
+    for (let t = 0; t < NT; t++) {
+      const tt = TIMES[t], env = Math.exp(-((tt - c0) ** 2) / (2 * wd * wd));
+      tc[o + t] += amp * env * (kind < 0.5 ? 1 : Math.sin(2 * Math.PI * fr * tt + ph) * 1.4);
+    }
+  };
+  const singleChan = (sign) => {
+    const w = new Float32Array(NCH);
+    for (let i = 0; i < NCH; i++) w[i] = R.n() * 0.025;
+    const idx = R.int(7, NCH - 1); w[idx] = sign; c.p.chan = idx;
+    c.p.chanLoc = locName(CH[idx].x, CH[idx].y);
+    return w;
+  };
+  const randBlobs = (n, rmax, slo, shi) => {
+    const bl = [];
+    for (let i = 0; i < n; i++) {
+      const p = polar(R.range(0, rmax), R.range(0, 360));
+      bl.push([p.x, p.y, R.range(slo, shi), R.sign() * R.range(0.5, 1)]);
+    }
+    return (x, y) => bl.reduce((s, b) => s + b[3] * G(x, y, b[0], b[1], b[2]), 0);
+  };
+
+  switch (sub) {
+    case 'alpha': {
+      const cx = R.range(-0.25, 0.25), cy = R.range(-0.75, -0.5), th = R.range(0, 6.28), fr = R.range(9, 11.5);
+      f = (x, y) => G(x, y, cx, cy, 0.4) * (1 + 0.5 * (((x - cx) * Math.cos(th) + (y - cy) * Math.sin(th)) / 0.4));
+      bg(0.97, 0.7); white(0.05);
+      osc(fr, 0.8, t => 1 - 0.55 * SIG((t - 0.15) / 0.04) * (1 - SIG((t - 0.8) / 0.08)));
+      erp([[0.1, 0.6, 0.025], [0.17, -0.8, 0.03]]);
+      c.p = { fr, loc: locName(cx, cy) };
+      c.reasons = [
+        `Smooth, dipolar topography over the ${c.p.loc}`,
+        `Clear spectral peak at ~${fr.toFixed(1)} Hz (alpha band, 8–12 Hz)`,
+        'Oscillatory, autocorrelated time course with no abrupt jumps',
+        'Alpha decreases after the stimulus (desynchronization) and there is a small evoked response',
+        'Artifact measures stay below threshold'
+      ];
+      break;
+    }
+    case 'beta': {
+      const cx = R.sign() * R.range(0.3, 0.5), cy = R.range(-0.1, 0.2), th = R.range(0, 6.28), fr = R.range(18, 24);
+      f = (x, y) => G(x, y, cx, cy, 0.38) * (0.25 + 1.3 * (((x - cx) * Math.cos(th) + (y - cy) * Math.sin(th)) / 0.38));
+      bg(0.97, 0.6); white(0.05);
+      osc(fr, 0.45, t => 1 - 0.6 * SIG((t - 0.25) / 0.05) * (1 - SIG((t - 0.65) / 0.05)) + 0.4 * SIG((t - 0.75) / 0.05));
+      osc(R.range(9.5, 11.5), 0.35, () => 1);
+      erp([[0.12, 0.4, 0.03], [0.2, -0.6, 0.04]]);
+      c.p = { fr, loc: locName(cx, cy) };
+      c.reasons = [
+        `Dipolar topography (two poles of opposite sign) over the ${c.p.loc}`,
+        `Spectral peak at ~${fr.toFixed(0)} Hz (beta, 15–30 Hz), typical of central sensors`,
+        'Beta desynchronization after the stimulus, followed by a rebound',
+        'Autocorrelated time course; no artifact measure passes threshold'
+      ];
+      break;
+    }
+    case 'theta': {
+      const cy = R.range(0.35, 0.55), fr = R.range(5, 6.5);
+      f = (x, y) => G(x, y, 0, cy, 0.42) - 0.15 * G(x, y, 0, -0.5, 0.4);
+      bg(0.97, 0.6); white(0.05);
+      osc(fr, 0.6, t => 1 + 0.8 * Math.exp(-((t - 0.4) ** 2) / (2 * 0.13 ** 2)));
+      erp([[0.25, -0.6, 0.04], [0.4, 0.6, 0.08]]);
+      c.p = { fr };
+      c.reasons = [
+        'Smooth topography over the frontal midline, fading gradually towards the back',
+        `Spectral peak at ~${fr.toFixed(1)} Hz (theta, ~5 Hz)`,
+        'Theta increase between 200 and 600 ms after the stimulus',
+        'No correlation with the EOG: not an ocular artifact even though it is frontal'
+      ];
+      break;
+    }
+    case 'evoked': {
+      const cx = R.range(-0.2, 0.2), cy = R.range(-0.6, -0.3), th = R.range(0, 6.28);
+      f = (x, y) => G(x, y, cx, cy, 0.42) * (1 + 0.4 * (((x - cx) * Math.cos(th) + (y - cy) * Math.sin(th)) / 0.42));
+      bg(0.97, 0.5); white(0.05);
+      osc(R.range(9, 11), 0.25, () => 1);
+      erp([[0.1, 1.1, 0.025], [0.17, -1.6, 0.03], [0.38, 1.0, 0.08]]);
+      c.p = { loc: locName(cx, cy) };
+      c.reasons = [
+        `Smooth, dipolar topography over the ${c.p.loc}`,
+        'Clear evoked response repeated across all trials (P1, N1, P3)',
+        'Spectrum with 1/f fall-off and no excess power at high frequencies',
+        'Usually among the components explaining the most variance'
+      ];
+      break;
+    }
+    case 'neural_frontal': {
+      f = (x, y) => Math.exp(-(x * x) / (2 * 0.75 ** 2) - ((y - 0.85) ** 2) / (2 * 0.42 ** 2)) - 0.2 * G(x, y, 0, -0.7, 0.4);
+      c.showEOG = R.u() < 0.7;
+      bg(0.97, 0.6); white(0.08);
+      erp([[0.26, -0.5, 0.04], [0.45, 1.8, 0.11], [0.62, 0.8, 0.08]], 0.35);
+      c.corrV = R.range(0.08, 0.16);
+      c.reasons = [
+        'Large weights on frontal channels, but the topography is broad and smooth',
+        'No polarity reversal at the electrodes below the eyes (when rendered, they have the same sign)',
+        'Continuous, noisy time course without large isolated deflections',
+        'Strong evoked response between 300 and 700 ms in almost every trial',
+        'Low correlation with the bipolar vertical EOG'
+      ];
+      c.trap = 'The case in Fig. 8 of the paper: its frontal weight makes it look like a blink. ADJUST and FASTER flagged it as a blink, and subtracting it wiped out almost the entire ERP at Fpz. SASICA did not flag it because it uses the difference between the two vertical EOG channels.';
+      break;
+    }
+    case 'focal_neural': {
+      const p = polar(R.range(0.45, 0.7), R.range(0, 360));
+      f = (x, y) => G(x, y, p.x, p.y, 0.18);
+      bg(0.97, 0.4); white(0.05);
+      erp([[0.11, 1.2, 0.025], [0.18, -1.5, 0.035], [0.32, 0.9, 0.06]]);
+      c.p = { loc: locName(p.x, p.y) };
+      c.reasons = [
+        `Focal but smooth topography: it spans several neighbouring electrodes over the ${c.p.loc}`,
+        'Sharp evoked response, reliable across trials',
+        'Autocorrelated time course, without the noise of a loose electrode',
+        'Spectrum with a normal 1/f fall-off'
+      ];
+      c.trap = 'The case in Fig. 5E: some users took it for a bad channel. A bad channel loads on a single electrode and its signal is noise with no response to events.';
+      break;
+    }
+    case 'blink': {
+      f = (x, y) => Math.exp(-((y - 1.02) ** 2) / (2 * 0.17 ** 2)) * Math.exp(-(x * x) / (2 * 0.55 ** 2));
+      eog = [-1.1, -1.1, -0.25, -0.25];
+      white(0.1); bg(0.8, 0.08);
+      for (let k = 0; k < NTR; k++) {
+        const nb = R.u() < 0.38 ? (R.u() < 0.15 ? 2 : 1) : 0;
+        for (let b = 0; b < nb; b++) {
+          const c0 = R.range(-0.45, 0.95), A = R.range(14, 20), s = R.range(0.05, 0.08), o = k * NT;
+          for (let t = 0; t < NT; t++) {
+            const d = TIMES[t] - c0;
+            tc[o + t] += A * Math.exp(-(d * d) / (2 * (d < 0 ? s * 0.7 : s * 1.3) ** 2));
+          }
+        }
+      }
+      c.corrV = R.range(0.85, 0.96); c.corrH = R.range(0.05, 0.2);
+      c.reasons = [
+        'Topography almost flat except at the most frontal electrodes' + (c.showEOG ? ', with an abrupt polarity reversal at the EOG channels below the eyes' : ''),
+        'Large, brief, isolated deflections (200–400 ms) on an almost flat baseline',
+        'No peak in physiological bands',
+        'Very high correlation with the vertical EOG',
+        'Usually among the first components because of its large amplitude'
+      ];
+      break;
+    }
+    case 'hsacc': {
+      const s = R.sign();
+      f = (x, y) => s * Math.tanh(x / 0.22) * Math.exp(-((y - 0.95) ** 2) / (2 * 0.3 ** 2));
+      eog = [-0.5 * s, 0.5 * s, -1.2 * s, 1.2 * s];
+      white(0.12); bg(0.8, 0.1); steps(0.5, 2.5, 4);
+      c.corrH = R.range(0.82, 0.95); c.corrV = R.range(0.05, 0.25);
+      c.reasons = [
+        'Frontal topography with opposite polarity on each side' + (c.showEOG ? ', maximal at the outer canthus EOG channels' : ''),
+        'Step-like changes: the signal jumps and stays there while gaze is deviated',
+        'No peak in physiological bands',
+        'High correlation with the horizontal EOG'
+      ];
+      break;
+    }
+    case 'vsacc': {
+      f = (x, y) => Math.exp(-((y - 0.95) ** 2) / (2 * 0.25 ** 2)) * Math.exp(-(x * x) / (2 * 0.6 ** 2));
+      eog = [-0.9, -0.9, -0.2, -0.2];
+      white(0.12); bg(0.8, 0.1); steps(0.45, 2, 3.5);
+      c.corrV = R.range(0.78, 0.92); c.corrH = R.range(0.05, 0.2);
+      c.reasons = [
+        'Frontal topography similar to a blink',
+        'But the time course shows sustained steps instead of brief peaks',
+        'No peak in physiological bands',
+        'High correlation with the vertical EOG'
+      ];
+      break;
+    }
+    case 'muscle': {
+      const rng = R.pick([[60, 120], [-120, -60], [145, 215]]);
+      const ang = R.range(rng[0], rng[1]), p = polar(0.92, ang);
+      const two = R.u() < 0.5, p2 = polar(0.9, ang + R.sign() * 17);
+      f = (x, y) => G(x, y, p.x, p.y, 0.13) - (two ? 0.85 * G(x, y, p2.x, p2.y, 0.11) : 0);
+      const mode = R.pick(['sube', 'baja', 'pico']), kc = R.range(25, 75);
+      const env = k => mode === 'sube' ? 0.25 + 0.95 * k / NTR : mode === 'baja' ? 1.2 - 0.95 * k / NTR : 0.25 + Math.exp(-(((k - kc) / 14) ** 2));
+      blue(0.9, env); bg(0.5, 0.05);
+      c.p = { loc: locName(p.x, p.y), mode };
+      const modeTxt = { sube: 'it appears and builds up across trials', baja: 'it dissipates across trials', pico: 'it appears only during part of the experiment' };
+      c.reasons = [
+        `Very focal topography at the edge of the cap (${c.p.loc})` + (two ? ', with a neighbouring pole of opposite sign' : ''),
+        'Continuous high-frequency noise that does not follow task events (no ERP)',
+        `Amplitude varies across trials: ${modeTxt[mode]}`,
+        'High power above 20 Hz',
+        'Low autocorrelation'
+      ];
+      break;
+    }
+    case 'badchan': {
+      wx = singleChan(R.sign());
+      bg(0.97, 0.9); white(0.6);
+      c.reasons = [
+        `Topography restricted to a single electrode (${c.p.chanLoc})`,
+        'Noisy time course in every trial, with slow drifts',
+        'No response to events',
+        'If the channel had been marked as bad, the correlation with it would be very high'
+      ];
+      break;
+    }
+    case 'rare_focal': {
+      wx = singleChan(R.sign());
+      white(0.12); bg(0.8, 0.06);
+      const n = R.int(2, 4), used = new Set();
+      while (used.size < n) used.add(R.int(0, NTR - 1));
+      used.forEach(k => burst(k, R.range(12, 20), R.range(0.02, 0.06)));
+      c.reasons = [
+        `Focal topography at one electrode (${c.p.chanLoc}): it also qualifies as a bad channel`,
+        `Almost flat time course except for ${n} trials with high-amplitude events`,
+        'Focal trial activity measure far above threshold',
+        'Alternative: reject those trials and recompute the ICA'
+      ];
+      break;
+    }
+    case 'rare_spread': {
+      f = randBlobs(3, 0.85, 0.3, 0.5);
+      white(0.12); bg(0.8, 0.06);
+      const n = R.int(2, 4), used = new Set();
+      while (used.size < n) used.add(R.int(0, NTR - 1));
+      used.forEach(k => burst(k, R.range(10, 16), R.range(0.1, 0.25)));
+      c.reasons = [
+        'Irregular, unpredictable topography (the event affected many electrodes, e.g. touching the cap)',
+        `Almost flat time course except for ${n} trials with huge activity`,
+        'Very high temporal kurtosis and focal trial activity',
+        'Alternative: reject those trials and recompute the ICA'
+      ];
+      break;
+    }
+    case 'noisy_events': {
+      const p = polar(0.9, R.pick([R.range(60, 120), R.range(-120, -60)]));
+      f = (x, y) => G(x, y, p.x, p.y, 0.14);
+      blue(0.5); erp([[0.15, 0.4, 0.04], [0.3, -0.4, 0.06]]);
+      const used = new Set();
+      while (used.size < 3) used.add(R.int(0, NTR - 1));
+      used.forEach(k => burst(k, R.range(10, 14), R.range(0.03, 0.08)));
+      c.reasons = [
+        'Focal topography at the edge of the cap and high-frequency noise, like muscle',
+        'But a few trials contain huge brief events that dominate the signal',
+        'There is also some evoked activity',
+        'The experts classified it as a rare event, not as pure muscle'
+      ];
+      c.trap = 'The case in Fig. 4F: a mixture. Low autocorrelation points to muscle, but the few high-amplitude events are what decides it.';
+      break;
+    }
+    case 'badchan_fewtrials': {
+      wx = singleChan(R.sign());
+      white(0.15); bg(0.8, 0.08);
+      const k0 = R.int(10, 80), len = R.int(6, 10);
+      for (let k = k0; k < k0 + len; k++) {
+        let x = 0; const o = k * NT;
+        for (let t = 0; t < NT; t++) { x = 0.97 * x + R.n() * 0.5; tc[o + t] += x + R.n() * 3; }
+      }
+      c.reasons = [
+        `Single-electrode topography (${c.p.chanLoc}), like a bad channel`,
+        `But the noise is only present during ${len} consecutive trials`,
+        'Outside that stretch the signal is almost flat',
+        'The experts classified it as a rare event (few trials)'
+      ];
+      c.trap = 'The case in Fig. 5F: overlap between bad channel and rare event. Both answers lead to rejection, but look at which trials contain the noise.';
+      break;
+    }
+    case 'other': {
+      f = randBlobs(R.int(2, 4), 0.9, 0.2, 0.45);
+      bg(0.95, 0.5); white(0.15);
+      erp([[0.15, -0.6, 0.04], [0.35, 0.5, 0.08]], 0.5);
+      for (let k = 0; k < NTR; k++) if (R.u() < 0.03) burst(k, R.range(1.5, 2.5), 0.1);
+      c.reasons = [
+        'Spread-out, irregular topography with several poles that do not form a dipole',
+        'Mixture of noise and some evoked response',
+        'No property clearly matches a single artifact type',
+        'The paper recommends not rejecting these systematically: part of the signal may be neural'
+      ];
+      break;
+    }
+    case 'focal_nonmuscle': {
+      const p = polar(0.88, R.pick([R.range(55, 125), R.range(-125, -55)]));
+      f = (x, y) => G(x, y, p.x, p.y, 0.14);
+      bg(0.97, 0.8); white(0.08);
+      erp([[0.2, 0.4, 0.06]], 0.6);
+      c.reasons = [
+        'Focal topography at the edge of the cap, like muscle',
+        'But the time course is slow and irregular, without the continuous high-frequency noise of muscle',
+        'Spectrum dominated by low frequencies, with no excess above 20 Hz',
+        'High autocorrelation'
+      ];
+      c.trap = 'The case in Fig. 4E: users often mistake peripheral focal components for muscle. Without sustained noise, it is not muscle.';
+      break;
+    }
+  }
+
+  const w = new Float32Array(NCH), we = new Float32Array(4);
+  if (wx) w.set(wx); else for (let i = 0; i < NCH; i++) w[i] = f(CH[i].x, CH[i].y) + R.n() * 0.015;
+  for (let j = 0; j < 4; j++) we[j] = (eog ? eog[j] : f ? f(EOGPOS[j].x, EOGPOS[j].y) : 0) + R.n() * 0.015;
+  let m = 0;
+  for (const v of w) m = Math.max(m, Math.abs(v));
+  for (const v of we) m = Math.max(m, Math.abs(v));
+  for (let i = 0; i < NCH; i++) w[i] /= m;
+  for (let j = 0; j < 4; j++) we[j] /= m;
+  c.w = w; c.we = we; c.tc = tc;
+  let ms = 0, sw = 0;
+  for (const v of tc) ms += v * v;
+  for (const v of w) sw += v * v;
+  c.variance = ms / tc.length * sw;
+  c.raw = rawMeasures(c);
+  return c;
+}
+
+const MEASURES = [
+  { k: 'LoAC', tool: 'SASICA', dir: -1, kSD: 2, name: 'Low autocorrelation', what: 'Autocorrelation of the time course at a 20 ms lag. Neural components are strongly autocorrelated; muscle is not.', target: 'Muscle' },
+  { k: 'FocCh', tool: 'SASICA', dir: 1, kSD: 2, name: 'Focal topography', what: 'Maximum z-score of the inverse weights across channels. High when one electrode dominates.', target: 'Bad channel, rare event' },
+  { k: 'FocTr', tool: 'SASICA', dir: 1, kSD: 2, name: 'Focal trial activity', what: 'Maximum z-score of the range (max − min) across trials. High when a few trials dominate.', target: 'Rare event' },
+  { k: 'CorrV', tool: 'SASICA', dir: 1, kSD: 4, name: 'Vertical EOG correlation', what: 'Correlation with the difference of the vertical EOG channels (bipolar). More conservative threshold: 4 SD.', target: 'Blink, vertical saccade' },
+  { k: 'CorrH', tool: 'SASICA', dir: 1, kSD: 4, name: 'Horizontal EOG correlation', what: 'Correlation with the difference of the horizontal EOG channels. Threshold: 4 SD.', target: 'Horizontal saccade' },
+  { k: 'TK', tool: 'ADJUST', dir: 1, kSD: 2, name: 'Temporal kurtosis', what: 'Kurtosis of the time course: high when there are rare high-amplitude events. ADJUST combines it with spatial measures.', target: 'Blink, rare event' }
+];
+
+function rawMeasures(c) {
+  const tc = c.tc;
+  let num = 0, den = 0;
+  const ranges = new Float32Array(NTR);
+  for (let k = 0; k < NTR; k++) {
+    const o = k * NT; let m = 0, mx = -Infinity, mn = Infinity;
+    for (let t = 0; t < NT; t++) { const v = tc[o + t]; m += v; if (v > mx) mx = v; if (v < mn) mn = v; }
+    m /= NT; ranges[k] = mx - mn;
+    for (let t = 0; t < NT; t++) {
+      const a = tc[o + t] - m; den += a * a;
+      if (t >= LAG) num += a * (tc[o + t - LAG] - m);
+    }
+  }
+  const zmax = (arr, abs) => {
+    let mu = 0; for (const v of arr) mu += v; mu /= arr.length;
+    let sd = 0; for (const v of arr) sd += (v - mu) ** 2; sd = Math.sqrt(sd / (arr.length - 1)) || 1;
+    let mx = -Infinity; for (const v of arr) { const z = (v - mu) / sd; mx = Math.max(mx, abs ? Math.abs(z) : z); }
+    return mx;
+  };
+  let mu = 0; for (const v of tc) mu += v; mu /= tc.length;
+  let m2 = 0, m4 = 0; for (const v of tc) { const d = (v - mu) ** 2; m2 += d; m4 += d * d; }
+  m2 /= tc.length; m4 /= tc.length;
+  return { LoAC: num / den, FocCh: zmax(c.w, true), FocTr: zmax(ranges, false), CorrV: c.corrV, CorrH: c.corrH, TK: m4 / (m2 * m2) - 3 };
+}
+
+function thresholds(comps) {
+  const out = {};
+  for (const M of MEASURES) {
+    const vals = comps.map(c => c.raw[M.k]);
+    const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const sd = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / (vals.length - 1)) || 1;
+    out[M.k] = { mean, sd, cut: mean + M.dir * M.kSD * sd };
+  }
+  return out;
+}
+function scores(c, thr) {
+  const out = {};
+  for (const M of MEASURES) {
+    const z = (c.raw[M.k] - thr[M.k].mean) / thr[M.k].sd * M.dir;
+    out[M.k] = { z, ratio: z / M.kSD, pass: z > M.kSD };
+  }
+  return out;
+}
+
+function genDataset(seed) {
+  const R = makeRng(seed);
+  const plan = [];
+  const neuralPool = ['alpha', 'alpha', 'beta', 'beta', 'theta', 'evoked', 'evoked'];
+  for (let i = 0; i < 7; i++) plan.push(R.pick(neuralPool));
+  if (R.u() < 0.6) plan.push('neural_frontal'); else plan.push(R.pick(neuralPool));
+  if (R.u() < 0.5) plan.push('focal_neural');
+  plan.push('blink', 'hsacc');
+  if (R.u() < 0.5) plan.push('vsacc');
+  const nm = R.int(4, 6); for (let i = 0; i < nm; i++) plan.push('muscle');
+  const nb = R.int(1, 2); for (let i = 0; i < nb; i++) plan.push('badchan');
+  const nr = R.int(1, 2); for (let i = 0; i < nr; i++) plan.push(R.pick(['rare_focal', 'rare_spread', 'noisy_events', 'badchan_fewtrials']));
+  let nfm = 0;
+  while (plan.length < 40) { if (nfm < 2 && R.u() < 0.1) { plan.push('focal_nonmuscle'); nfm++; } else plan.push('other'); }
+  const comps = plan.map((s, i) => genComponent(s, (seed * 7919 + i * 104729 + 17) >>> 0));
+  comps.sort((a, b) => b.variance - a.variance);
+  return { seed, comps, thr: thresholds(comps) };
+}
+
+// Radix-2 FFT and trial-averaged spectrum (Hann window, zero-padded to 256)
+function fft(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < n; i += len) {
+      let cr = 1, ci = 0;
+      for (let j = 0; j < len / 2; j++) {
+        const a = i + j, b = a + len / 2;
+        const xr = re[b] * cr - im[b] * ci, xi = re[b] * ci + im[b] * cr;
+        re[b] = re[a] - xr; im[b] = im[a] - xi; re[a] += xr; im[a] += xi;
+        const nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr;
+      }
+    }
+  }
+}
+function spectrum(c) {
+  if (c.spec) return c.spec;
+  const N = 256, P = new Float64Array(N / 2 + 1), re = new Float64Array(N), im = new Float64Array(N);
+  for (let k = 0; k < NTR; k++) {
+    re.fill(0); im.fill(0);
+    let m = 0; for (let t = 0; t < NT; t++) m += c.tc[k * NT + t]; m /= NT;
+    for (let t = 0; t < NT; t++) re[t] = (c.tc[k * NT + t] - m) * (0.5 - 0.5 * Math.cos(2 * Math.PI * t / (NT - 1)));
+    fft(re, im);
+    for (let b = 0; b <= N / 2; b++) P[b] += re[b] * re[b] + im[b] * im[b];
+  }
+  const fq = [], db = [];
+  for (let b = 1; b <= N / 2; b++) {
+    const fr = b * FS / N;
+    if (fr < 2 || fr > 50) continue;
+    const filt = 1 / (1 + (fr / 45) ** 16);
+    fq.push(fr); db.push(10 * Math.log10(P[b] / NTR * filt + 1e-9));
+  }
+  return (c.spec = { fq, db });
+}
+
+// Signal detection
+function normInv(p) {
+  const a = [-39.6968302866538, 220.946098424521, -275.928510446969, 138.357751867269, -30.6647980661472, 2.50662827745924];
+  const b = [-54.4760987982241, 161.585836858041, -155.698979859887, 66.8013118877197, -13.2806815528857];
+  const cc = [-0.00778489400243029, -0.322396458041136, -2.40075827716184, -2.54973253934373, 4.37466414146497, 2.93816398269878];
+  const d = [0.00778469570904146, 0.32246712907004, 2.445134137143, 3.75440866190742];
+  const pl = 0.02425;
+  let q, r;
+  if (p < pl) { q = Math.sqrt(-2 * Math.log(p)); return (((((cc[0] * q + cc[1]) * q + cc[2]) * q + cc[3]) * q + cc[4]) * q + cc[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  if (p > 1 - pl) { q = Math.sqrt(-2 * Math.log(1 - p)); return -(((((cc[0] * q + cc[1]) * q + cc[2]) * q + cc[3]) * q + cc[4]) * q + cc[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  q = p - 0.5; r = q * q;
+  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+function sdt(hits, nSig, fas, nNoise) {
+  const hr = nSig ? hits / nSig : 0, far = nNoise ? fas / nNoise : 0;
+  const zh = normInv((hits + 0.5) / (nSig + 1)), zf = normInv((fas + 0.5) / (nNoise + 1));
+  return { hr, far, d: zh - zf, c: -(zh + zf) / 2 };
+}
+
+if (typeof module !== 'undefined' && typeof window === 'undefined') module.exports = { genComponent, genDataset, thresholds, scores, spectrum, sdt, SUBS, CATS, MEASURES };
+
+</script>
+<script>
+// ===== Interface =====
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const catName = k => CATS[CATIDX[k]].name;
+const isReject = k => CATS[CATIDX[k]].reject;
+const pct = v => (v * 100).toFixed(0) + '%';
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const fmt = v => Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2);
+const rnd = () => (Math.random() * 2 ** 31) >>> 0;
+const decPill = k => isReject(k) ? '<span class="pill reject">Reject</span>' : '<span class="pill keep">Keep</span>';
+const catChip = k => `<span class="chip" style="background:var(--c-${k})"></span>`;
+
+const CATINFO = {
+  neural: {
+    desc: 'Captures brain activity. When ICA is run on enough full-rank data, several components compellingly isolate neural sources. No single property is diagnostic on its own: the evidence is spread across topography, time course and spectrum.',
+    props: ['Smooth, regular topography, well modelled by one or two dipoles', 'Often among the components explaining the most variance', 'Spectral peak in a physiological band: posterior alpha (8–12 Hz), central beta (15–30 Hz), frontal theta (~5 Hz), delta (1–4 Hz)', 'Evoked response to stimuli', 'Low artifact measures'],
+    confuse: ['Components with heavy frontal weights can look like blinks (Fig. 8): check for the polarity reversal below the eyes', 'Focal but smooth components can look like a bad channel (Fig. 5E)', 'Gamma oscillations (>40 Hz) overlap with the muscle band'],
+    auto: 'No tool flags a component as “neural”; the risk is that it gets flagged as an artifact. In the paper’s test data, ADJUST and FASTER mistook several frontal neural components for blinks.'
+  },
+  blink: {
+    desc: 'The easiest type to identify. Blinks produce artifacts of extreme amplitude, so these components usually rank among the first dozen.',
+    props: ['Topography essentially flat except at a few frontal electrodes and the EOG channels', 'If the infraorbital EOG channels are rendered on the map, an abrupt polarity reversal at the frontmost sites', 'Large, abrupt deflections on an otherwise near-zero signal', 'No peak in physiological bands', 'High correlation with the vertical EOG'],
+    confuse: ['Neural components with frontal weight and no polarity reversal (Figs. 3H and 8)', 'Vertical saccades: same topography, but the time course shows steps'],
+    auto: 'SASICA correlates the component with the difference between two vertical EOG channels (4 SD threshold). ADJUST combines SAD, SVD and temporal kurtosis; FASTER uses the maximum correlation with any EOG channel. With a single EOG electrode under one eye, correlation-based detection gets worse.'
+  },
+  saccade: {
+    desc: 'Capture eye movements. In tasks with a saccade on almost every trial there can be several such components with similar topographies (Fig. 9).',
+    props: ['Horizontal saccades: maximal at anterior electrodes with opposite polarity on each side', 'Vertical saccades: topography similar to blinks', 'Step-like variations in the time course', 'No peak in physiological bands', 'High correlation with the horizontal (or vertical) EOG'],
+    confuse: ['Ambiguous components that correlate with one EOG channel but load on central channels (Fig. 3I): without a polarity reversal at the canthi they are not ocular', 'Brain potentials associated with saccades may be of interest and should not be removed without thought'],
+    auto: 'SASICA and FASTER rely on correlation with the EOG. ADJUST does not need EOG: it combines maximum epoch variance (MEV) with the spatial difference between lateral regions (SED). Without several EOG channels around the eyes, ADJUST detected saccades best.'
+  },
+  muscle: {
+    desc: 'Tonic activity of neck, jaw and face muscles produces a stereotypical pattern at electrodes on the edge of the cap. It can come from posture, yawning or swallowing.',
+    props: ['Very focal topography over a local group of edge electrodes (sometimes with opposite polarity)', 'Steady noise that does not follow task events: no ERP', 'Amplitude changes across trials: it builds up or dissipates as the participant shifts posture', 'High power above 20 Hz', 'Low autocorrelation'],
+    confuse: ['Peripheral focal components without steady noise (Fig. 4E)', 'Mixtures with a few high-amplitude events (Fig. 4F): the experts classified these as rare events', 'Components capturing neural gamma'],
+    auto: 'SASICA uses low autocorrelation at 20 ms. FASTER uses the median gradient and the Hurst exponent. ADJUST and CORRMAP do not look for muscle. In the paper, autocorrelation caught 43% of muscle components.'
+  },
+  badchan: {
+    desc: 'A poorly connected (high-impedance) electrode with large amplitudes, uncorrelated with the other channels, is readily isolated by ICA in a single component.',
+    props: ['Focal topography restricted to one electrode', 'Noisy time course reflecting the bad connection', 'Very high correlation with the channel marked as bad'],
+    confuse: ['Focal, smooth components with an evoked response (Fig. 5E): these are neural', 'A bad channel active only during a few trials (Fig. 5F) overlaps with the rare event category'],
+    auto: 'SASICA: focal topography (FocCh) and correlation with a designated bad channel. FASTER: spatial kurtosis. ADJUST: generic discontinuities (GDSF). All tools detected less than half of these in the training data.'
+  },
+  rare: {
+    desc: 'A few high-amplitude events, for example when the participant moves or touches the cap. This is the category with the least agreement between observers: users identified only 34%.',
+    props: ['A few high-amplitude events in an otherwise almost flat time course', 'If the event happened at one electrode, focal topography (it also qualifies as a bad channel)', 'If it affected many electrodes, a less predictable topography', 'Very high focal trial activity and kurtosis'],
+    confuse: ['Bad channel: decide by whether the noise is present in every trial or only a few', 'Mixtures of muscle noise and brief events'],
+    auto: 'SASICA: focal trial activity (FocTr). ADJUST: GDSF and MEV. FASTER: spatial kurtosis. Alternative strategy from the paper: reject the affected trials and recompute the ICA.'
+  },
+  other: {
+    desc: 'Many components, often the majority, do not fit a single category: they mix signals, and many contain evoked responses. The experts used this category when no consensus could be reached.',
+    props: ['Spread-out or irregular topography with several poles', 'Mixture of noise and evoked activity', 'No property points to a specific artifact type'],
+    confuse: ['Muscle, if the topography is focal and peripheral (Fig. 4E)', 'Bad channel, if the topography is focal'],
+    auto: 'The paper advises against rejecting these components systematically, and against filtering by dipole residual variance (>15%): spread-out, synchronous neural populations are not well modelled by a dipole.'
+  }
+};
+
+// ---------- Storage ----------
+const STORE_KEY = 'ica-trainer-v1';
+function loadStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (s && Array.isArray(s.conf) && s.conf.length === 7) return { conf: s.conf, runs: s.runs || [] };
+  } catch (e) { }
+  return { conf: Array.from({ length: 7 }, () => Array(7).fill(0)), runs: [] };
+}
+function saveStats() { try { localStorage.setItem(STORE_KEY, JSON.stringify(ST)); } catch (e) { } }
+const ST = loadStats();
+
+// Reference thresholds (fixed simulated dataset) for the Learn and Practice modes
+const REF = genDataset(777);
+const REFTHR = REF.thr;
+
+// ---------- Drawing ----------
+const STOPS = [[-1, [33, 102, 172]], [-0.5, [103, 169, 207]], [0, [247, 247, 247]], [0.5, [239, 138, 98]], [1, [178, 24, 43]]];
+function cmap(v) {
+  v = Math.max(-1, Math.min(1, v));
+  for (let i = 0; i < 4; i++) {
+    const [a, ca] = STOPS[i], [b, cb] = STOPS[i + 1];
+    if (v <= b) { const t = (v - a) / (b - a); return [ca[0] + (cb[0] - ca[0]) * t, ca[1] + (cb[1] - ca[1]) * t, ca[2] + (cb[2] - ca[2]) * t]; }
+  }
+  return STOPS[4][1];
+}
+function setupCanvas(cv, w, h) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + 'px';
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return ctx;
+}
+function topoImage(c, showEOG) {
+  c._t = c._t || {};
+  const key = showEOG ? 'e' : 'n';
+  if (c._t[key]) return c._t[key];
+  const N = 64, cv = document.createElement('canvas'); cv.width = cv.height = N;
+  const ctx = cv.getContext('2d'), img = ctx.createImageData(N, N);
+  const px = [], py = [], pv = [];
+  for (let i = 0; i < NCH; i++) { px.push(CH[i].x); py.push(CH[i].y); pv.push(c.w[i]); }
+  if (showEOG) for (let j = 0; j < 4; j++) { px.push(EOGPOS[j].x); py.push(EOGPOS[j].y); pv.push(c.we[j]); }
+  for (let iy = 0; iy < N; iy++) for (let ix = 0; ix < N; ix++) {
+    const x = ((ix + 0.5) / N * 2 - 1) * HEAD, y = (1 - (iy + 0.5) / N * 2) * HEAD;
+    if (x * x + y * y > HEAD * HEAD * 1.02) continue;
+    let sw = 0, sv = 0;
+    for (let i = 0; i < px.length; i++) {
+      const d2 = (x - px[i]) ** 2 + (y - py[i]) ** 2 + 1e-4, w = 1 / (d2 * Math.sqrt(d2));
+      sw += w; sv += w * pv[i];
+    }
+    const col = cmap(sv / sw), o = (iy * N + ix) * 4;
+    img.data[o] = col[0]; img.data[o + 1] = col[1]; img.data[o + 2] = col[2]; img.data[o + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  return (c._t[key] = cv);
+}
+function drawTopo(cv, c, showEOG, dots) {
+  const W = cv.clientWidth || 72, ctx = setupCanvas(cv, W, W);
+  const cx = W / 2, cy = W / 2 + W * 0.035, r = W * 0.405, ink = tok('--ink');
+  ctx.clearRect(0, 0, W, W);
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.clip();
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(topoImage(c, showEOG), cx - r, cy - r, 2 * r, 2 * r);
+  ctx.restore();
+  ctx.strokeStyle = ink; ctx.lineWidth = Math.max(1, W / 110);
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - r * 0.13, cy - r * 0.99); ctx.lineTo(cx, cy - r * 1.14); ctx.lineTo(cx + r * 0.13, cy - r * 0.99); ctx.stroke();
+  for (const s of [-1, 1]) { ctx.beginPath(); ctx.ellipse(cx + s * r * 1.04, cy, r * 0.06, r * 0.17, 0, 0, 2 * Math.PI); ctx.stroke(); }
+  if (dots) {
+    ctx.fillStyle = ink; ctx.globalAlpha = 0.5;
+    for (const p of CH) { ctx.beginPath(); ctx.arc(cx + p.x / HEAD * r, cy - p.y / HEAD * r, Math.max(0.8, W / 220), 0, 2 * Math.PI); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    if (showEOG) {
+      ctx.lineWidth = 1.2;
+      for (const p of EOGPOS) { const s = W / 70; ctx.strokeRect(cx + p.x / HEAD * r - s, cy - p.y / HEAD * r - s, 2 * s, 2 * s); }
+    }
+  }
+}
+function erpImage(c) {
+  if (c._erp) return c._erp;
+  const sm = new Float32Array(NTR * NT), half = 2;
+  for (let k = 0; k < NTR; k++) for (let t = 0; t < NT; t++) {
+    let s = 0, n = 0;
+    for (let j = Math.max(0, k - half); j <= Math.min(NTR - 1, k + half); j++) { s += c.tc[j * NT + t]; n++; }
+    sm[k * NT + t] = s / n;
+  }
+  const abs = Array.from(sm, Math.abs).sort((a, b) => a - b);
+  const lim = abs[Math.floor(abs.length * 0.985)] || 1;
+  const cv = document.createElement('canvas'); cv.width = NT; cv.height = NTR;
+  const ctx = cv.getContext('2d'), img = ctx.createImageData(NT, NTR);
+  for (let k = 0; k < NTR; k++) for (let t = 0; t < NT; t++) {
+    const col = cmap(sm[k * NT + t] / lim), o = ((NTR - 1 - k) * NT + t) * 4;
+    img.data[o] = col[0]; img.data[o + 1] = col[1]; img.data[o + 2] = col[2]; img.data[o + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  const mean = new Float32Array(NT);
+  for (let t = 0; t < NT; t++) { let s = 0; for (let k = 0; k < NTR; k++) s += c.tc[k * NT + t]; mean[t] = s / NTR; }
+  return (c._erp = { cv, lim, mean });
+}
+function drawERP(cv, c) {
+  const W = cv.clientWidth || 300, H = Math.round(Math.min(270, Math.max(210, W * 0.6)));
+  const ctx = setupCanvas(cv, W, H), ink = tok('--ink'), muted = tok('--muted'), line = tok('--line');
+  const L = 38, Rm = 6, T = 4, pw = W - L - Rm, imgH = Math.round(H * 0.6), erpT = T + imgH + 8, erpH = H - erpT - 20;
+  const e = erpImage(c);
+  ctx.clearRect(0, 0, W, H);
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(e.cv, L, T, pw, imgH);
+  const xOf = t => L + (t - T0) / 1.5 * pw;
+  ctx.font = '10px ' + tok('--font-mono'); ctx.fillStyle = muted; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ctx.fillText('1', L - 4, T + imgH - 5); ctx.fillText(String(NTR), L - 4, T + 6);
+  ctx.save(); ctx.translate(10, T + imgH / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center'; ctx.fillText('Trials', 0, 0); ctx.restore();
+  // mean ERP
+  let mx = 0; for (const v of e.mean) mx = Math.max(mx, Math.abs(v));
+  const ymax = Math.max(mx * 1.15, e.lim * 0.3);
+  const yOf = v => erpT + erpH / 2 - v / ymax * erpH / 2;
+  ctx.strokeStyle = line; ctx.lineWidth = 1;
+  ctx.strokeRect(L + 0.5, erpT + 0.5, pw - 1, erpH - 1);
+  ctx.beginPath(); ctx.moveTo(L, yOf(0)); ctx.lineTo(L + pw, yOf(0)); ctx.stroke();
+  ctx.strokeStyle = tok('--accent'); ctx.lineWidth = 1.6; ctx.beginPath();
+  for (let t = 0; t < NT; t++) { const x = xOf(TIMES[t]), y = yOf(e.mean[t]); t ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+  ctx.stroke();
+  ctx.fillStyle = muted; ctx.textAlign = 'right';
+  ctx.fillText('ERP', L - 4, erpT + erpH / 2);
+  // stimulus line
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.moveTo(xOf(0), T); ctx.lineTo(xOf(0), erpT + erpH); ctx.stroke(); ctx.setLineDash([]);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = muted;
+  for (const t of [-0.5, 0, 0.5, 1]) {
+    const x = Math.min(Math.max(xOf(t), L + 12), L + pw - 14);
+    ctx.fillText((t * 1000).toFixed(0), x, erpT + erpH + 4);
+  }
+  ctx.textAlign = 'right'; ctx.fillText('ms', W - 2, erpT + erpH + 4);
+}
+function niceTicks(lo, hi, n) {
+  const span = hi - lo, step0 = span / n, mag = 10 ** Math.floor(Math.log10(step0));
+  const step = [1, 2, 5, 10].map(m => m * mag).find(s => s >= step0) || mag * 10;
+  const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(6));
+  return out;
+}
+function drawSpec(cv, c) {
+  const W = cv.clientWidth || 300, H = 160, ctx = setupCanvas(cv, W, H);
+  const muted = tok('--muted'), line = tok('--line');
+  const { fq, db } = spectrum(c);
+  const L = 38, Rm = 8, T = 8, B = 22, pw = W - L - Rm, ph = H - T - B;
+  let lo = Math.min(...db), hi = Math.max(...db); const pad = (hi - lo) * 0.08 + 0.5; lo -= pad; hi += pad;
+  const xOf = f => L + (f - 2) / 48 * pw, yOf = v => T + (hi - v) / (hi - lo) * ph;
+  ctx.clearRect(0, 0, W, H);
+  ctx.font = '10px ' + tok('--font-mono'); ctx.fillStyle = muted; ctx.strokeStyle = line; ctx.lineWidth = 1;
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (const v of niceTicks(lo, hi, 4)) { const y = yOf(v); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke(); ctx.fillText(v.toFixed(0), L - 4, y); }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (const f of [10, 20, 30, 40, 50]) ctx.fillText(String(f), Math.min(xOf(f), L + pw - 6), T + ph + 5);
+  ctx.textAlign = 'left'; ctx.fillText('Hz', L, T + ph + 5);
+  ctx.save(); ctx.translate(9, T + ph / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('dB', 0, 0); ctx.restore();
+  // reference band
+  ctx.fillStyle = tok('--accent-soft'); ctx.globalAlpha = 0.55;
+  ctx.fillRect(xOf(8), T, xOf(12) - xOf(8), ph);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = muted; ctx.textBaseline = 'top'; ctx.textAlign = 'center'; ctx.fillText('α', xOf(10), T + 2);
+  ctx.strokeStyle = tok('--bad'); ctx.lineWidth = 1.8; ctx.beginPath();
+  fq.forEach((f, i) => { const x = xOf(f), y = yOf(db[i]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+  ctx.stroke();
+}
+
+function measuresHTML(c, thr) {
+  const sc = scores(c, thr);
+  const rows = MEASURES.map(M => {
+    const s = sc[M.k], w = Math.max(0, Math.min(2, s.ratio)) / 2 * 100;
+    return `<div class="meas-row" title="${esc(M.name + ' (' + M.tool + '): ' + M.what)}">
+      <span class="mk">${M.k}</span>
+      <div class="track" role="img" aria-label="${esc(M.name)}: ${s.pass ? 'passes' : 'does not pass'} threshold"><div class="bar ${s.pass ? 'pass' : ''}" style="width:${w}%;background:var(--m-${M.k})"></div><div class="th"></div></div>
+      <span class="mv">${fmt(c.raw[M.k])}</span></div>`;
+  }).join('');
+  return `<div class="meas">${rows}<div class="meas-legend"><span>0</span><span>threshold</span><span>2×</span></div></div>
+  <details style="margin-top:8px;font-size:.82rem"><summary class="muted" style="cursor:pointer">What each bar measures</summary>
+  <ul style="margin:6px 0 0;padding-left:18px;display:grid;gap:4px">${MEASURES.map(M => `<li><b class="mono" style="color:var(--m-${M.k})">${M.k}</b> · ${M.name} (${M.tool}). ${M.what} <span class="muted">Targets: ${M.target}.</span></li>`).join('')}</ul></details>`;
+}
+
+let liveDraws = [];
+function renderCard(el, c, thr, o = {}) {
+  el.innerHTML = `<article class="cmp">
+    <div class="cmp-head"><span class="id">${esc(o.title || 'Component')}</span>${o.headRight || ''}</div>
+    <div class="cmp-grid">
+      <figure class="pane topo-pane"><figcaption>Topography${c.showEOG ? ' · with EOG' : ''}</figcaption><canvas class="cv-topo"></canvas></figure>
+      <figure class="pane"><figcaption>Single-trial activity and mean ERP</figcaption><canvas class="cv-erp"></canvas></figure>
+      <div class="cmp-row2">
+        <figure class="pane"><figcaption>Activity power spectrum</figcaption><canvas class="cv-spec"></canvas></figure>
+        <figure class="pane"><figcaption>Automated measures</figcaption>${o.showMeasures ? measuresHTML(c, thr) : `<div class="meas-hidden">${o.hiddenMsg || 'Measures hidden'}</div>`}</figure>
+      </div>
+    </div></article>`;
+  const draw = () => {
+    if (!el.isConnected) return;
+    drawTopo($('.cv-topo', el), c, c.showEOG, true);
+    drawERP($('.cv-erp', el), c);
+    drawSpec($('.cv-spec', el), c);
+  };
+  liveDraws.push(draw);
+  requestAnimationFrame(draw);
+}
+function redrawAll() { liveDraws = liveDraws.filter(fn => { fn(); return true; }); }
+
+// ---------- State ----------
+const S = {
+  tab: 'learn',
+  learn: { cat: 'guide', sub: null, seed: 11 },
+  pr: null,
+  prSession: { n: 0, correct: 0, dec: 0, streak: 0, best: 0 },
+  prShowMeas: false,
+  ds: null,
+  dsSug: false, dsOverview: true,
+  resConfirm: false
+};
+
+// ---------- Learn ----------
+function renderLearn() {
+  const v = $('#v-learn'); liveDraws = [];
+  const L = S.learn;
+  const nav = `<nav class="catlist" aria-label="Component types">
+    <button data-cat="guide" aria-current="${L.cat === 'guide'}"><span class="chip" style="background:var(--accent)"></span>Reading guide</button>
+    ${CATS.map(cc => `<button data-cat="${cc.k}" aria-current="${L.cat === cc.k}">${catChip(cc.k)}${cc.name}<span class="side">${cc.reject ? 'reject' : 'keep'}</span></button>`).join('')}
+  </nav>`;
+  let body;
+  if (L.cat === 'guide') {
+    body = `<div class="learn-body">
+      <div class="panel principles">
+        <div class="eyebrow">Why it matters</div>
+        <h2 style="font-size:1.6rem;margin-top:4px">Read a component before you subtract it</h2>
+        <p style="max-width:68ch;margin:.5em 0 0">Each independent component (IC) is a linear combination of electrodes: it has a <b>topography</b> (inverse weights over the cap) and a <b>time course</b> (the signal an electrode placed at the source would record). Subtracting an artifactual IC cleans the data just like discarding a bad electrode. The hard part is deciding which ones to subtract.</p>
+        <ol>
+          <li>It is a signal detection problem: leaving an artifact in is under-correction (type II error); removing a neural component is over-correction (type I error).</li>
+          <li>No single property is enough. Always look at topography, ERP image and spectrum together.</li>
+          <li>Automated measures guide the decision; they do not make it. No automated method isolated artifacts accurately without supervision.</li>
+          <li>Decide up front which artifacts you want to correct (blinks, muscle, channels) for your question: someone studying gamma may not want to remove components with high-frequency power.</li>
+          <li>When a component is ambiguous, keep it: it may contain neural signal.</li>
+          <li>Report the measures and thresholds you used so that preprocessing is reproducible.</li>
+        </ol>
+      </div>
+      <div class="panel howto">
+        <div><h3>Topography</h3><p>Red and blue are opposite polarities. Look for smoothness (dipole), focality (one electrode, the edge) or frontal loading. The frontal squares are EOG channels when they are rendered.</p></div>
+        <div><h3>ERP image</h3><p>Each row is a trial (trial 1 at the bottom), smoothed over 5 neighbouring trials. The dashed line marks the stimulus. Below it, the mean ERP.</p></div>
+        <div><h3>Spectrum</h3><p>Power in dB from 2 to 50 Hz, with the alpha band shaded. Physiological peaks versus flat or rising high-frequency noise. The drop near 45 Hz is the filter.</p></div>
+        <div><h3>Measures</h3><p>Scaled bars: the red line is the threshold (dataset mean + 2 SD; 4 SD for EOG). A coloured bar passes threshold.</p></div>
+      </div>
+      <div id="learn-card"></div>
+    </div>`;
+  } else {
+    const I = CATINFO[L.cat], subs = SUBS_BY_CAT[L.cat];
+    if (!L.sub || SUBS[L.sub].cat !== L.cat) L.sub = subs[0];
+    body = `<div class="learn-body">
+      <div class="panel learn-intro">
+        <div>
+          <div class="eyebrow">Component type</div>
+          <h2 style="margin-top:4px">${catChip(L.cat)}${catName(L.cat)} ${decPill(L.cat)}</h2>
+          <p>${I.desc}</p>
+          <div class="subhead">Expected properties</div>
+          <ul class="props">${I.props.map(p => `<li>${p}</li>`).join('')}</ul>
+        </div>
+        <div>
+          <div class="subhead" style="margin-top:0">Can be mistaken for</div>
+          <ul class="props warn">${I.confuse.map(p => `<li>${p}</li>`).join('')}</ul>
+          <div class="subhead">Automated detection</div>
+          <p style="font-size:.92rem">${I.auto}</p>
+        </div>
+      </div>
+      <div class="variants" role="group" aria-label="Variants">
+        <span class="eyebrow" style="margin-right:4px">Examples</span>
+        ${subs.map(s => `<button data-sub="${s}" aria-pressed="${L.sub === s}">${SUBS[s].label}${SUBS[s].trap ? '<span class="t">edge case</span>' : ''}</button>`).join('')}
+        <button class="btn" id="learn-new" style="margin-left:auto">New example</button>
+      </div>
+      <div id="learn-card"></div>
+      <div id="learn-why"></div>
+    </div>`;
+  }
+  v.innerHTML = `<div class="learn">${nav}${body}</div>`;
+  const sub = L.cat === 'guide' ? 'evoked' : L.sub;
+  const c = genComponent(sub, L.seed + sub.length * 101);
+  renderCard($('#learn-card'), c, REFTHR, { title: L.cat === 'guide' ? 'Example: neural component with an evoked response' : SUBS[sub].label, showMeasures: true, headRight: decPill(c.cat) });
+  if (L.cat !== 'guide') {
+    $('#learn-why').innerHTML = `<div class="panel" style="padding:14px 16px"><div class="subhead" style="margin-top:0">What to notice in this example</div><ul class="props">${c.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>${c.trap ? `<div class="note" style="margin-top:10px">${esc(c.trap)}</div>` : ''}</div>`;
+  }
+  $$('.catlist button', v).forEach(b => b.onclick = () => { L.cat = b.dataset.cat; L.sub = null; renderLearn(); });
+  $$('.variants [data-sub]', v).forEach(b => b.onclick = () => { L.sub = b.dataset.sub; renderLearn(); });
+  const nb = $('#learn-new'); if (nb) nb.onclick = () => { L.seed = rnd(); renderLearn(); };
+}
+
+// ---------- Practice ----------
+function newPracticeItem() {
+  const cat = CATS[Math.floor(Math.random() * CATS.length)].k;
+  const subs = SUBS_BY_CAT[cat], sub = subs[Math.floor(Math.random() * subs.length)];
+  S.pr = { c: genComponent(sub, rnd()), answer: null };
+}
+function renderPractice() {
+  if (!S.pr) newPracticeItem();
+  const v = $('#v-practice'); liveDraws = [];
+  const P = S.pr, ss = S.prSession, c = P.c, answered = P.answer !== null;
+  const acc = ss.n ? pct(ss.correct / ss.n) : '—', dec = ss.n ? pct(ss.dec / ss.n) : '—';
+  v.innerHTML = `
+    <div class="scorebar">
+      <div class="stat"><b>${ss.n}</b><span>answered</span></div>
+      <div class="stat"><b>${acc}</b><span>correct type</span></div>
+      <div class="stat"><b>${dec}</b><span>correct decision</span></div>
+      <div class="stat"><b>${ss.streak}</b><span>streak (best ${ss.best})</span></div>
+      <label class="switch" style="margin-left:auto"><input type="checkbox" id="pr-meas" ${S.prShowMeas ? 'checked' : ''}> Show measures before answering</label>
+    </div>
+    <div class="practice">
+      <div id="pr-card"></div>
+      <div style="display:grid;gap:14px">
+        <div class="panel answers">
+          <h3>What does this component capture?</h3>
+          <p class="muted" style="margin:0 0 4px;font-size:.84rem">Keys 1–7 to answer${answered ? ', Enter to continue' : ''}.</p>
+          ${CATS.map((cc, i) => {
+            let cls = '';
+            if (answered) { if (cc.k === c.cat) cls = 'correct'; else if (cc.k === P.answer) cls = 'wrong'; }
+            return `<button class="ans ${cls}" data-k="${cc.k}" ${answered ? 'disabled' : ''}><span class="key">${i + 1}</span>${catChip(cc.k)}<span>${cc.name}</span><span class="dec" style="color:${cc.reject ? 'var(--bad)' : 'var(--ok)'}">${cc.reject ? 'reject' : 'keep'}</span></button>`;
+          }).join('')}
+        </div>
+        <div id="pr-fb"></div>
+      </div>
+    </div>`;
+  renderCard($('#pr-card'), c, REFTHR, {
+    title: answered ? SUBS[c.sub].label : 'Unknown component',
+    showMeasures: answered || S.prShowMeas,
+    headRight: answered ? decPill(c.cat) : '',
+    hiddenMsg: 'Measures hidden.<br>Decide first by looking at the topography, ERP image and spectrum.'
+  });
+  if (answered) $('#pr-fb').innerHTML = feedbackHTML(c, P.answer);
+  $('#pr-meas').onchange = e => { S.prShowMeas = e.target.checked; renderPractice(); };
+  $$('.ans', v).forEach(b => b.onclick = () => answerPractice(b.dataset.k));
+  const nx = $('#pr-next'); if (nx) nx.onclick = nextPractice;
+}
+function feedbackHTML(c, ans) {
+  const ok = ans === c.cat;
+  let decTxt;
+  if (ok) decTxt = '';
+  else if (isReject(ans) === isReject(c.cat)) decTxt = `The decision would have been the same (${isReject(ans) ? 'reject' : 'keep'}), but the category needs refining.`;
+  else if (!isReject(c.cat)) decTxt = 'You would have subtracted a component that should be kept: over-correction (type I error), risking the loss of neural signal.';
+  else decTxt = 'You would have left an artifact in the data: under-correction (type II error).';
+  const sc = scores(c, REFTHR), passed = MEASURES.filter(M => sc[M.k].pass);
+  const sasica = passed.filter(M => M.tool === 'SASICA');
+  let autoTxt = passed.length ? `Above threshold: ${passed.map(M => `<b class="mono" style="color:var(--m-${M.k})">${M.k}</b>`).join(', ')}.` : 'No measure passes threshold.';
+  if (isReject(c.cat) && !sasica.length) autoTxt += ' SASICA would not have suggested it: visual inspection is essential here.';
+  if (!isReject(c.cat) && sasica.length) autoTxt += ' SASICA would have suggested rejecting it, even though it should be kept.';
+  return `<div class="panel feedback">
+    <h3 class="${ok ? 'ok' : 'no'}">${ok ? 'Correct' : 'Not quite'}: ${catName(c.cat)}</h3>
+    ${decTxt ? `<p style="margin:0;font-size:.92rem">${decTxt}</p>` : ''}
+    <div class="subhead" style="margin:0">Key features of this component</div>
+    <ul>${c.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
+    ${c.trap ? `<div class="note">${esc(c.trap)}</div>` : ''}
+    <p style="margin:0;font-size:.88rem" class="muted">${autoTxt}</p>
+    <button class="btn primary" id="pr-next">Next component</button>
+  </div>`;
+}
+function answerPractice(k) {
+  const P = S.pr; if (!P || P.answer !== null) return;
+  P.answer = k;
+  const ss = S.prSession, ok = k === P.c.cat;
+  ss.n++; if (ok) { ss.correct++; ss.streak++; ss.best = Math.max(ss.best, ss.streak); } else ss.streak = 0;
+  if (isReject(k) === isReject(P.c.cat)) ss.dec++;
+  ST.conf[CATIDX[P.c.cat]][CATIDX[k]]++; saveStats();
+  renderPractice();
+}
+function nextPractice() { newPracticeItem(); renderPractice(); window.scrollTo({ top: 0, behavior: 'auto' }); }
+
+// ---------- Full dataset ----------
+function newDataset(seed) {
+  const d = genDataset(seed ?? rnd());
+  S.ds = { d, marks: d.comps.map(() => false), sel: 0, graded: null };
+}
+function gradeDataset() {
+  const D = S.ds, comps = D.d.comps;
+  let h = 0, m = 0, fa = 0, cr = 0, sh = 0, sfa = 0, artV = 0, nonV = 0, hitV = 0, faV = 0;
+  comps.forEach((c, i) => {
+    const art = isReject(c.cat), mk = D.marks[i];
+    const sc = scores(c, D.d.thr), auto = MEASURES.some(M => M.tool === 'SASICA' && sc[M.k].pass);
+    if (art) { artV += c.variance; if (mk) { h++; hitV += c.variance; } else m++; if (auto) sh++; }
+    else { nonV += c.variance; if (mk) { fa++; faV += c.variance; } else cr++; if (auto) sfa++; }
+  });
+  const nA = h + m, nN = fa + cr, you = sdt(h, nA, fa, nN), sas = sdt(sh, nA, sfa, nN);
+  D.graded = { h, m, fa, cr, nA, nN, you, sas, artVarRemoved: hitV / artV, nonVarRemoved: faV / nonV };
+  ST.runs.unshift({ date: new Date().toISOString(), hr: you.hr, far: you.far, d: you.d, c: you.c, sasD: sas.d, varA: hitV / artV, varN: faV / nonV });
+  ST.runs = ST.runs.slice(0, 30); saveStats();
+}
+function renderDataset() {
+  if (!S.ds) newDataset(2026);
+  const v = $('#v-dataset'); liveDraws = [];
+  const D = S.ds, comps = D.d.comps, G = D.graded;
+  const nMarked = D.marks.filter(Boolean).length;
+  v.innerHTML = `
+    <div class="ds-tools">
+      <div><div class="eyebrow">Simulated dataset · ${comps.length} components sorted by variance</div>
+      <p style="margin:2px 0 0;font-size:.9rem;max-width:70ch">Review every component as in the EEGLAB tool: mark the ones you would subtract and compare your selection with the reference classification. Click the <span class="mono">IC</span> label to toggle keep / reject.</p></div>
+      <div class="spacer"></div>
+      <label class="switch"><input type="checkbox" id="ds-sug" ${S.dsSug ? 'checked' : ''}> SASICA suggestions</label>
+      <label class="switch"><input type="checkbox" id="ds-ov" ${S.dsOverview ? 'checked' : ''}> Measures overview</label>
+      <button class="btn" id="ds-new">New dataset</button>
+      <button class="btn primary" id="ds-grade" ${G ? 'disabled' : ''}>Score (${nMarked} to reject)</button>
+    </div>
+    ${S.dsSug ? `<div class="legend" style="margin-bottom:10px">${MEASURES.map(M => `<span><i style="background:var(--m-${M.k})"></i>${M.k} · ${M.name}</span>`).join('')}</div>` : ''}
+    <div class="ds">
+      <div class="icgrid" id="ds-grid">${comps.map((c, i) => {
+        const sc = scores(c, D.d.thr), passed = MEASURES.filter(M => sc[M.k].pass);
+        let g = '';
+        if (G) { const art = isReject(c.cat), mk = D.marks[i]; g = art ? (mk ? 'g-hit' : 'g-miss') : (mk ? 'g-fa' : ''); }
+        return `<div class="ic ${D.marks[i] ? 'rej' : ''} ${g}" aria-current="${D.sel === i}">
+          <button class="num" data-tog="${i}" aria-label="IC ${i + 1}: ${D.marks[i] ? 'reject' : 'keep'}">IC ${i + 1}</button>
+          <button data-sel="${i}" style="border:0;background:none;padding:0" aria-label="View IC ${i + 1}"><canvas data-i="${i}"></canvas></button>
+          ${S.dsSug ? `<span class="dots">${passed.map(M => `<i style="background:var(--m-${M.k})" title="${M.k}"></i>`).join('')}</span>` : ''}
+          ${G ? `<span class="truth" style="color:var(--c-${c.cat})">${catName(c.cat)}</span>` : ''}
+        </div>`;
+      }).join('')}</div>
+      <div class="ds-side">
+        ${G ? resultsHTML(G) : ''}
+        ${S.dsOverview ? `<div class="panel"><div class="overview" id="ds-ov-wrap">${MEASURES.map(M => `<figure><figcaption>${M.k} · ${M.tool}</figcaption><canvas data-m="${M.k}"></canvas></figure>`).join('')}</div></div>` : ''}
+        <div class="decide" id="ds-decide"></div>
+        <div id="ds-card"></div>
+        <div id="ds-why"></div>
+      </div>
+    </div>`;
+  // thumbnails
+  const drawThumbs = () => $$('#ds-grid canvas').forEach(cv => drawTopo(cv, comps[+cv.dataset.i], false, false));
+  liveDraws.push(drawThumbs); requestAnimationFrame(drawThumbs);
+  if (S.dsOverview) { const ov = () => drawOverview(D); liveDraws.push(ov); requestAnimationFrame(ov); }
+  renderDsDetail();
+  $('#ds-sug').onchange = e => { S.dsSug = e.target.checked; renderDataset(); };
+  $('#ds-ov').onchange = e => { S.dsOverview = e.target.checked; renderDataset(); };
+  $('#ds-new').onclick = () => { newDataset(); renderDataset(); };
+  $('#ds-grade').onclick = () => { gradeDataset(); renderDataset(); };
+  $$('[data-tog]', v).forEach(b => b.onclick = () => toggleMark(+b.dataset.tog));
+  $$('[data-sel]', v).forEach(b => b.onclick = () => selectIC(+b.dataset.sel));
+  $$('#ds-ov-wrap canvas').forEach(cv => cv.onclick = e => {
+    const r = cv.getBoundingClientRect(), L = 6, pw = r.width - 12;
+    const i = Math.round((e.clientX - r.left - L) / pw * (comps.length - 1));
+    if (i >= 0 && i < comps.length) selectIC(i);
+  });
+}
+function toggleMark(i) {
+  const D = S.ds; D.marks[i] = !D.marks[i]; D.sel = i;
+  if (D.graded) D.graded = null; // changing the selection invalidates the score
+  renderDataset();
+}
+function selectIC(i) {
+  const D = S.ds; D.sel = i;
+  $$('#ds-grid .ic').forEach((el, j) => el.setAttribute('aria-current', j === i));
+  renderDsDetail();
+  if (S.dsOverview) drawOverview(D);
+}
+function renderDsDetail() {
+  const D = S.ds, i = D.sel, c = D.d.comps[i], G = D.graded;
+  liveDraws = liveDraws.filter(fn => !fn._detail);
+  const dec = $('#ds-decide');
+  dec.innerHTML = `<span class="eyebrow">IC ${i + 1}</span>
+    <button class="btn k" aria-pressed="${!D.marks[i]}" id="ds-keep">Keep <span class="mono muted">K</span></button>
+    <button class="btn r" aria-pressed="${D.marks[i]}" id="ds-rej">Reject <span class="mono muted">R</span></button>
+    <span class="muted" style="font-size:.8rem;margin-left:auto">← → to move</span>`;
+  $('#ds-keep').onclick = () => { if (D.marks[i]) toggleMark(i); };
+  $('#ds-rej').onclick = () => { if (!D.marks[i]) toggleMark(i); };
+  const wrap = $('#ds-card'), before = liveDraws.length;
+  renderCard(wrap, c, D.d.thr, {
+    title: `IC ${i + 1} · ${(c.variance / D.d.comps.reduce((a, b) => a + b.variance, 0) * 100).toFixed(1)}% of variance`,
+    showMeasures: true,
+    headRight: G ? `<span>${catChip(c.cat)} <b>${catName(c.cat)}</b> · ${SUBS[c.sub].label}</span>` : ''
+  });
+  liveDraws.slice(before).forEach(fn => fn._detail = true);
+  $('#ds-why').innerHTML = G ? `<div class="panel" style="padding:14px 16px"><ul class="props">${c.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>${c.trap ? `<div class="note" style="margin-top:10px">${esc(c.trap)}</div>` : ''}</div>` : '';
+}
+function resultsHTML(G) {
+  const f2 = v => (v >= 0 ? '' : '−') + Math.abs(v).toFixed(2);
+  return `<div class="panel" style="padding:14px;display:grid;gap:10px">
+    <div><div class="eyebrow">Score against the reference</div>
+    <p style="margin:2px 0 0;font-size:.88rem">${G.h} of ${G.nA} artifacts rejected · ${G.fa} of ${G.nN} neural or mixed components rejected by mistake. In the grid: green border = hit, dashed red = miss or false alarm.</p></div>
+    <div class="results-grid">
+      <div class="tile"><b>${pct(G.you.hr)}</b><span>hit rate</span><div class="vs">SASICA ${pct(G.sas.hr)}</div></div>
+      <div class="tile"><b>${pct(G.you.far)}</b><span>false alarm rate</span><div class="vs">SASICA ${pct(G.sas.far)}</div></div>
+      <div class="tile"><b>${f2(G.you.d)}</b><span>sensitivity d′</span><div class="vs">SASICA ${f2(G.sas.d)}</div></div>
+      <div class="tile"><b>${f2(G.you.c)}</b><span>criterion c</span><div class="vs">${G.you.c > 0 ? 'conservative' : 'liberal'}</div></div>
+      <div class="tile"><b>${pct(G.artVarRemoved)}</b><span>artifact variance removed</span></div>
+      <div class="tile"><b>${pct(G.nonVarRemoved)}</b><span>neural/mixed variance removed</span></div>
+    </div>
+    <p class="muted" style="margin:0;font-size:.8rem">“SASICA” = reject every component that passes at least one SASICA threshold. In the paper, users removed 64.6% of artifact variance and 13.4% of non-artifact variance.</p>
+  </div>`;
+}
+function drawOverview(D) {
+  const comps = D.d.comps;
+  $$('#ds-ov-wrap canvas').forEach(cv => {
+    const M = MEASURES.find(m => m.k === cv.dataset.m), W = cv.clientWidth || 160, H = 92, ctx = setupCanvas(cv, W, H);
+    const vals = comps.map(c => c.raw[M.k]), th = D.d.thr[M.k];
+    let lo = Math.min(...vals, th.cut), hi = Math.max(...vals, th.cut);
+    if (M.k === 'TK') { lo = Math.min(...vals); }
+    const pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
+    const L = 6, pw = W - 12, T = 4, ph = H - 10;
+    const xOf = i => L + i / (comps.length - 1) * pw, yOf = v => T + (hi - v) / (hi - lo) * ph;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = tok('--sunk'); ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = tok('--bad'); ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(L, yOf(th.cut)); ctx.lineTo(L + pw, yOf(th.cut)); ctx.stroke();
+    const muted = tok('--muted'), col = tok('--m-' + M.k);
+    comps.forEach((c, i) => {
+      const pass = M.dir > 0 ? c.raw[M.k] > th.cut : c.raw[M.k] < th.cut;
+      ctx.fillStyle = pass ? col : muted; ctx.globalAlpha = pass ? 1 : 0.55;
+      ctx.beginPath(); ctx.arc(xOf(i), yOf(c.raw[M.k]), pass ? 3.2 : 2.2, 0, 2 * Math.PI); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    const i = D.sel; ctx.strokeStyle = tok('--ink'); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(xOf(i), yOf(comps[i].raw[M.k]), 5.5, 0, 2 * Math.PI); ctx.stroke();
+  });
+}
+
+// ---------- Results ----------
+function renderResults() {
+  const v = $('#v-results'); liveDraws = [];
+  const conf = ST.conf, total = conf.flat().reduce((a, b) => a + b, 0);
+  let h = 0, nA = 0, fa = 0, nN = 0;
+  CATS.forEach((ct, i) => CATS.forEach((cr, j) => {
+    const n = conf[i][j];
+    if (ct.reject) { nA += n; if (cr.reject) h += n; } else { nN += n; if (cr.reject) fa += n; }
+  }));
+  const s = sdt(h, nA, fa, nN);
+  const diag = CATS.reduce((a, _, i) => a + conf[i][i], 0);
+  const matrix = total ? `<div class="tablewrap"><table class="conf">
+      <thead><tr><th class="rowh">True ↓ · Your answer →</th>${CATS.map(cc => `<th>${cc.name}</th>`).join('')}<th>Correct</th></tr></thead>
+      <tbody>${CATS.map((cc, i) => {
+        const row = conf[i], rs = row.reduce((a, b) => a + b, 0);
+        return `<tr><th class="rowh">${catChip(cc.k)} ${cc.name}</th>${row.map((n, j) => {
+          const p = rs ? n / rs : 0, base = i === j ? 'var(--ok)' : 'var(--bad)';
+          return `<td style="background:color-mix(in srgb, ${base} ${Math.round(p * 55)}%, transparent)">${n || '·'}</td>`;
+        }).join('')}<td><b>${rs ? pct(row[i] / rs) : '—'}</b></td></tr>`;
+      }).join('')}</tbody></table></div>` : `<div class="empty">No answers yet. Go to <b>Practice</b> to start.</div>`;
+  const runs = ST.runs.length ? `<table class="list"><thead><tr><th>Date</th><th>Hits</th><th>False alarms</th><th>d′</th><th>SASICA d′</th></tr></thead><tbody>${ST.runs.map(r => `<tr><td>${new Date(r.date).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td><td>${pct(r.hr)}</td><td>${pct(r.far)}</td><td>${r.d.toFixed(2)}</td><td>${r.sasD.toFixed(2)}</td></tr>`).join('')}</tbody></table>` : `<div class="empty">Score a full dataset to track your progress.</div>`;
+  v.innerHTML = `<div class="res">
+    <div class="panel" style="padding:16px;display:grid;gap:12px;min-width:0">
+      <div><div class="eyebrow">Single-component practice · ${total} answers</div><h2 style="font-size:1.4rem;margin-top:2px">Confusion matrix</h2></div>
+      ${total ? `<div class="results-grid">
+        <div class="tile"><b>${pct(diag / total)}</b><span>correct type</span></div>
+        <div class="tile"><b>${nA ? pct(s.hr) : '—'}</b><span>artifacts rejected</span></div>
+        <div class="tile"><b>${nN ? pct(s.far) : '—'}</b><span>useful components rejected</span></div>
+        <div class="tile"><b>${(nA && nN) ? s.d.toFixed(2) : '—'}</b><span>d′ reject / keep</span></div>
+      </div>` : ''}
+      ${matrix}
+      <p class="muted" style="margin:0;font-size:.82rem">Rows: reference category. Columns: your answer. In the original study even the experts disagreed (Krippendorff’s α 0.42–0.51) and only reached consensus after discussion.</p>
+    </div>
+    <div class="panel" style="padding:16px;display:grid;gap:12px;min-width:0">
+      <div><div class="eyebrow">Full datasets</div><h2 style="font-size:1.4rem;margin-top:2px">History</h2></div>
+      ${runs}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${S.resConfirm
+        ? `<span>Delete all results saved in this browser?</span><button class="btn" id="res-yes" style="border-color:var(--bad);color:var(--bad)">Delete</button><button class="btn" id="res-no">Cancel</button>`
+        : `<button class="btn" id="res-reset">Delete results</button><span class="muted" style="font-size:.8rem">Results are saved in this browser only.</span>`}</div>
+    </div>
+  </div>`;
+  const r = $('#res-reset'); if (r) r.onclick = () => { S.resConfirm = true; renderResults(); };
+  const y = $('#res-yes'); if (y) y.onclick = () => { ST.conf = Array.from({ length: 7 }, () => Array(7).fill(0)); ST.runs = []; saveStats(); S.resConfirm = false; renderResults(); };
+  const n = $('#res-no'); if (n) n.onclick = () => { S.resConfirm = false; renderResults(); };
+}
+
+// ---------- Navigation ----------
+const VIEWS = { learn: renderLearn, practice: renderPractice, dataset: renderDataset, results: renderResults };
+function showTab(t, push) {
+  if (!VIEWS[t]) t = 'learn';
+  S.tab = t;
+  $$('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  Object.keys(VIEWS).forEach(k => $('#v-' + k).hidden = k !== t);
+  VIEWS[t]();
+  if (push) { try { history.replaceState(null, '', '#' + t); } catch (e) { } }
+}
+$$('.tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab, true));
+
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea,select') || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (S.tab === 'practice' && S.pr) {
+    if (S.pr.answer === null && /^[1-7]$/.test(e.key)) { answerPractice(CATS[+e.key - 1].k); e.preventDefault(); }
+    else if (S.pr.answer !== null && (e.key === 'Enter' || e.key === 'ArrowRight')) { nextPractice(); e.preventDefault(); }
+  } else if (S.tab === 'dataset' && S.ds) {
+    const D = S.ds, n = D.d.comps.length;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { selectIC(Math.min(n - 1, D.sel + 1)); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { selectIC(Math.max(0, D.sel - 1)); e.preventDefault(); }
+    else if (e.key === 'r' || e.key === 'R') { if (!D.marks[D.sel]) toggleMark(D.sel); }
+    else if (e.key === 'k' || e.key === 'K') { if (D.marks[D.sel]) toggleMark(D.sel); }
+  }
+});
+
+let rT;
+window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(redrawAll, 150); });
+try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => setTimeout(redrawAll, 30)); } catch (e) { }
+new MutationObserver(() => setTimeout(redrawAll, 30)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+showTab((location.hash || '').replace('#', '') || 'learn', false);
+
+</script>
+
+</body>
+</html>
