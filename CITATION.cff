@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "TODO: project title"
+abstract: >-
+  TODO: one paragraph on what the project does and what it is for.
+  Developed during the personal projects session (hackathon) of the
+  Training School of Working Group 3 of the INDoS COST Action (CA24161),
+  Madrid, 30 September to 2 October 2026.
+type: software
+authors:
+  - family-names: "Navarro Bernad"
+    given-names: "Marta"
+    affiliation: "TODO: affiliation, city, country"
+license: Apache-2.0
+repository-code: "https://github.com/indos-costaction/wg3-ts2026-navarro"
+keywords:
+  - neuroimaging
+  - hackathon
+  - training school
+  - INDoS
+  - COST Action CA24161

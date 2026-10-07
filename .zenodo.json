@@ -1,0 +1,33 @@
+{
+  "upload_type": "software",
+  "title": "TODO: project title",
+  "description": "<p>TODO: one paragraph on what the project does and what it is for.</p><p>Developed during the personal projects session (hackathon) of the Training School of Working Group 3 of the INDoS COST Action (CA24161), Madrid, 30 September to 2 October 2026.</p>",
+  "creators": [
+    {
+      "name": "Navarro Bernad, Marta",
+      "affiliation": "TODO: affiliation, city, country"
+    }
+  ],
+  "license": "apache-2.0",
+  "language": "eng",
+  "keywords": [
+    "neuroimaging",
+    "hackathon",
+    "training school",
+    "INDoS",
+    "COST Action CA24161"
+  ],
+  "notes": "This publication is based upon work from COST Action CA24161 (INDoS), supported by COST (European Cooperation in Science and Technology).",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/indos-costaction/wg3-ts2026-navarro",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "https://www.indos-costaction.eu/wg3-ts2026",
+      "relation": "isPartOf",
+      "resource_type": "event"
+    }
+  ]
+}

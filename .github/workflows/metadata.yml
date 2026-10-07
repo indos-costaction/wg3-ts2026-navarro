@@ -1,0 +1,44 @@
+name: Release metadata
+
+# Zenodo archives every GitHub release using .zenodo.json; GitHub's
+# "Cite this repository" reads CITATION.cff. This check stays red until
+# both are valid and every TODO placeholder has been filled in.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: CITATION.cff is valid
+        uses: citation-file-format/cffconvert-github-action@2.0.0
+        with:
+          args: --validate
+
+      - name: .zenodo.json is valid
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          meta = json.load(open(".zenodo.json"))
+          missing = [k for k in ("upload_type", "title", "description", "creators", "license") if not meta.get(k)]
+          unnamed = [i for i, c in enumerate(meta.get("creators", [])) if not c.get("name")]
+          if missing or unnamed:
+              print(f"::error file=.zenodo.json::missing fields: {missing}, creators without a name: {unnamed}")
+              sys.exit(1)
+          PY
+
+      - name: No placeholders left
+        run: |
+          if grep -n 'TODO' CITATION.cff .zenodo.json; then
+            echo "::error::Fill in the TODO placeholders in CITATION.cff and .zenodo.json before cutting a release (see RELEASING.md)."
+            exit 1
+          fi
