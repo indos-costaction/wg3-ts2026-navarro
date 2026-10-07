@@ -18,3 +18,6 @@ dist/
 
 # Environment and secrets
 .env
+
+# Written by the Pages workflow at deploy time
+release.json

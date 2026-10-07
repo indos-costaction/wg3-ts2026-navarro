@@ -1,9 +1,15 @@
-# Releasing to Zenodo
+# Releasing: Zenodo and the project page
 
-Every release published on GitHub is archived on Zenodo automatically, and
-Zenodo assigns it a DOI. Zenodo takes the record's metadata from
-`.zenodo.json`, and the version from the release tag. GitHub's "Cite this
-repository" button reads `CITATION.cff`. Keep the two files in agreement.
+Publishing a release on GitHub does two things: Zenodo archives it and
+assigns it a DOI, and the **Deploy site** workflow publishes that release to
+<https://www.indos-costaction.eu/wg3-ts2026-navarro/>. Pushing to `main`
+does neither, so the archive and the live page always show the same version.
+Running **Deploy site** by hand (Actions tab) redeploys the latest release.
+
+Zenodo takes the record's metadata from `.zenodo.json`, and the version from
+the release tag. The project page shows the same `.zenodo.json`. GitHub's
+"Cite this repository" button reads `CITATION.cff`. Keep the two files in
+agreement.
 
 ## 1. Fill in the metadata (author)
 
@@ -46,6 +52,12 @@ To check it is on, look for a `zenodo.org` webhook under the repository's
    repositories use tags without a `v`.
 3. Write the title and a few lines of release notes.
 4. Click **Publish release**.
+
+Then check that:
+
+- the **Deploy site** run in the Actions tab is green. It refuses to publish
+  while `.zenodo.json` still has a `TODO`;
+- the project page shows the new version.
 
 Zenodo picks up the release within a few minutes. The new record is listed at
 <https://zenodo.org/account/settings/github/repository/indos-costaction/wg3-ts2026-navarro>.

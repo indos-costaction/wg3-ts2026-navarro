@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hackathon project | INDoS WG3 Training School 2026</title>
+  <link rel="icon" type="image/png" href="assets/indos-brain.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Urbanist:wght@400;600&display=swap">
+  <!--
+    The title, authors, description and keywords come from .zenodo.json, the
+    same metadata Zenodo archives. The version comes from release.json, which
+    the Pages workflow writes at deploy time. Edit those, not this page.
+  -->
+  <style>
+    :root {
+      --orange: #F9B34B; --turquoise: #60BFAF; --lavender: #BE5EAC;
+      --purple: #5D288F; --navy: #122B62; --line: #e4e8ee;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Urbanist", system-ui, sans-serif; color: #222; background: #fff; line-height: 1.5; }
+    header { background: var(--navy); color: #fff; padding: 40px 16px 48px; }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+    header img { width: 220px; max-width: 60%; display: block; margin-bottom: 28px; }
+    .eyebrow { font-family: Montserrat, sans-serif; color: var(--orange); text-transform: uppercase;
+               letter-spacing: .14em; font-weight: 700; font-size: .8rem; }
+    h1 { font-family: Montserrat, sans-serif; font-size: clamp(1.6rem, 4vw, 2.4rem); margin: .3em 0 .3em; line-height: 1.2; }
+    header p { margin: .3em 0; color: rgba(255,255,255,.85); }
+    header a { color: #fff; }
+    .affiliation { color: rgba(255,255,255,.65); }
+    .mosaic { width: 59px; height: 11px; margin-top: 22px; background: linear-gradient(90deg,
+      var(--turquoise) 0 11px, transparent 11px 16px, var(--orange) 16px 27px, transparent 27px 32px,
+      var(--lavender) 32px 43px, transparent 43px 48px, var(--purple) 48px 59px); }
+    main { padding: 32px 0 16px; }
+    #description { font-size: 1.1rem; }
+    .links { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 28px 0; }
+    .link { display: block; padding: 16px 18px; border: 1px solid var(--line); border-top: 4px solid var(--purple);
+            border-radius: 0 0 10px 10px; text-decoration: none; color: inherit; transition: background .15s; }
+    .link:nth-child(4n+1) { border-top-color: var(--turquoise); }
+    .link:nth-child(4n+2) { border-top-color: var(--orange); }
+    .link:nth-child(4n+3) { border-top-color: var(--lavender); }
+    .link:hover { background: #f7f3fc; }
+    .link strong { font-family: Montserrat, sans-serif; color: var(--navy); display: block; font-size: 1.1rem; }
+    .link span { color: #555; }
+    .link img { display: block; margin-top: 8px; height: 20px; }
+    .keywords { list-style: none; padding: 0; margin: 0 0 20px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .keywords li { background: #f1e9f8; color: var(--purple); border-radius: 999px; padding: 2px 12px; font-size: .9rem; }
+    .note { color: #666; font-size: .95rem; }
+    footer { border-top: 1px solid var(--line); margin-top: 24px; padding: 20px 0 32px; font-size: .85rem; color: #555; }
+    footer .logos { display: flex; gap: 20px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    footer .logos img { height: 40px; }
+    a { color: var(--purple); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <img src="assets/indos-logo-left-white.png" alt="INDoS: Improving Neuroimaging Data for Sharing">
+      <div class="eyebrow">WG3 Training School &middot; Madrid 2026 &middot; Hackathon project</div>
+      <h1 id="title">Hackathon project</h1>
+      <p id="creators">Marta Navarro Bernad</p>
+      <p id="release" hidden></p>
+      <div class="mosaic"></div>
+    </div>
+  </header>
+  <main class="wrap">
+    <div id="description">
+      <p>Developed during the personal projects session (hackathon) of the Training School of Working Group 3
+        of the INDoS COST Action (CA24161), Madrid, 30 September to 2 October 2026.</p>
+    </div>
+    <nav class="links">
+      <a class="link" id="link-code" href="https://github.com/indos-costaction/wg3-ts2026-navarro">
+        <strong>Source code</strong><span>On GitHub, with the instructions to run it</span></a>
+      <a class="link" href="https://zenodo.org/badge/latestdoi/1408359941">
+        <strong>Archived release</strong><span>On Zenodo, with a DOI</span>
+        <img src="https://zenodo.org/badge/1408359941.svg" alt="DOI badge" onerror="this.remove()"></a>
+      <a class="link" id="link-cite" href="https://github.com/indos-costaction/wg3-ts2026-navarro/blob/main/CITATION.cff">
+        <strong>How to cite</strong><span>The citation file, or the "Cite this repository" button on GitHub</span></a>
+    </nav>
+    <ul class="keywords" id="keywords"></ul>
+    <p class="note">One of the personal projects of the
+      <a href="https://www.indos-costaction.eu/training">INDoS WG3 Training School</a>, Madrid, 30 September to 2 October 2026.</p>
+  </main>
+  <footer>
+    <div class="wrap">
+      <div class="logos">
+        <img src="assets/cost-logo-darkgrey.png" alt="COST">
+        <img src="assets/eu-funded-pos.png" alt="Funded by the European Union">
+      </div>
+      This publication is based upon work from COST Action CA24161 (INDoS), supported by COST (European Cooperation in Science and Technology).
+      Code licensed <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a>.
+    </div>
+  </footer>
+  <script>
+    (async () => {
+      const repo = "https://github.com/indos-costaction/wg3-ts2026-navarro";
+      const $ = (sel) => document.querySelector(sel);
+      const getJSON = async (url) => {
+        try { const r = await fetch(url, { cache: "no-cache" }); return r.ok ? await r.json() : null; }
+        catch { return null; }
+      };
+      const [meta, release] = await Promise.all([getJSON(".zenodo.json"), getJSON("release.json")]);
+
+      if (meta) {
+        document.title = `${meta.title} | INDoS WG3 Training School 2026`;
+        $("#title").textContent = meta.title;
+        $("#description").innerHTML = meta.description;
+
+        // Zenodo names are "Family, Given": show them as "Given Family".
+        const creators = $("#creators");
+        creators.replaceChildren();
+        (meta.creators || []).forEach((c, i) => {
+          if (i) creators.append(i === meta.creators.length - 1 ? " and " : ", ");
+          const [family, given] = c.name.split(/,\s*/);
+          const name = given ? `${given} ${family}` : family;
+          const el = c.orcid ? Object.assign(document.createElement("a"), { href: `https://orcid.org/${c.orcid}` })
+                             : document.createElement("span");
+          el.textContent = name;
+          creators.append(el);
+          if (c.affiliation) {
+            const aff = Object.assign(document.createElement("span"), { className: "affiliation" });
+            aff.textContent = ` (${c.affiliation})`;
+            creators.append(aff);
+          }
+        });
+
+        $("#keywords").replaceChildren(...(meta.keywords || []).map((k) => {
+          const li = document.createElement("li"); li.textContent = k; return li;
+        }));
+      }
+
+      if (release) {
+        const date = new Date(release.published).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+        const p = $("#release");
+        p.replaceChildren("Version ", Object.assign(document.createElement("a"), { href: release.url, textContent: release.tag }),
+                          `, released ${date}`);
+        p.hidden = false;
+        $("#link-code").href = `${repo}/tree/${release.tag}`;
+        $("#link-cite").href = `${repo}/blob/${release.tag}/CITATION.cff`;
+      }
+    })();
+  </script>
+</body>
+</html>

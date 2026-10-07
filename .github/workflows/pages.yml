@@ -1,0 +1,81 @@
+# Publish the project page to GitHub Pages, at
+# https://www.indos-costaction.eu/wg3-ts2026-navarro/
+#
+# The site is only ever a published release: publishing a GitHub release
+# deploys that release, and pushing to main deploys nothing. The same
+# release is what Zenodo archives, so the live page and the record with
+# the DOI are always the same version. Running the workflow by hand
+# redeploys the latest release.
+#
+# The site is the repository as it is, with no build: index.html reads the
+# title, authors and description from .zenodo.json, and the version from
+# the release.json this workflow writes next to it.
+#
+# Requires Settings -> Pages -> Source = "GitHub Actions", and the
+# github-pages environment must allow deployments from tags matching *.*.*
+# and v* (Settings -> Environments -> github-pages), since a release runs
+# on its tag.
+name: Deploy site
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; never cancel one that is already publishing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Always the latest full release: never a draft or a prerelease, nor an
+      # older tag published after a newer one. Fails when there is no release.
+      - name: Find the latest release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view --repo "$GITHUB_REPOSITORY" --json tagName,publishedAt,url \
+            > "$RUNNER_TEMP/release.json"
+          echo "tag=$(jq -r .tagName "$RUNNER_TEMP/release.json")" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.release.outputs.tag }}
+
+      # The landing page is built from .zenodo.json: never publish placeholders.
+      - name: No placeholders left
+        run: |
+          if grep -n 'TODO' .zenodo.json; then
+            echo "::error::.zenodo.json still has TODO placeholders (see RELEASING.md)."
+            exit 1
+          fi
+
+      - name: Record the release for the landing page
+        run: |
+          jq '{tag: .tagName, published: .publishedAt, url: .url}' \
+            "$RUNNER_TEMP/release.json" > release.json
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
